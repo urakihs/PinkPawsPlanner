@@ -495,7 +495,7 @@ function renderFons(){
         <td>
           <div class="fons-bondcad-controls">
             <select class="fons-bondcad-sel" data-bond-field="character" data-bond-id="${c.id}">${charOpts}</select>
-            <select class="fons-bondcad-sel" data-bond-field="tier" data-bond-id="${c.id}"><option value="100" ${c.tier===100?'selected':''}>100 Bond</option><option value="200" ${c.tier===200?'selected':''}>200 Bond</option><option value="400" ${c.tier===400?'selected':''}>400 Bond</option></select>
+            <select class="fons-bondcad-sel" data-bond-field="tier" data-bond-id="${c.id}"><option value="200" ${c.tier===200?'selected':''}>200 Bond</option><option value="400" ${c.tier===400?'selected':''}>400 Bond</option></select>
             <input class="fons-bondcad-num" type="number" min="0" step="1" value="${c.giftsPerDay||0}" title="Gifts per day" data-bond-field="giftsPerDay" data-bond-id="${c.id}">
           </div>
           ${noteHtml}
