@@ -1,6 +1,6 @@
 # Pink Paws Planner
 
-A local, single-page web app for tracking **Fons income** and **Bond (Affinity) progress** in **NTE: Neverness to Everness**.
+A local, single-page web app for tracking **Fons income and spend** in **NTE: Neverness to Everness**.
 
 ## Quick start
 
@@ -14,24 +14,27 @@ Your data saves automatically to your browser's local storage. Use **Export** to
 
 ## What it does
 
-- **Characters** — a lightweight bond roster. Add any character, click their card to open the Bond editor: current level/exp, gift items (Fons cost, bond value, owned count), gifts-per-day, the daily "date" bonus, and a live projection of days/Fons needed to reach bond level 10. Toggling a character out of the roster excludes them from the Fons calculation below without losing their saved plan.
-- **Fons Management** — projects your Fons income and expenses from now until a target date or a target Fons balance, combining every recurring source (dailies, weeklies, monthly resets, patch-cycle buyouts) with your active bond-gifting plan. Rows are drag-to-reorder and toggle on/off; add your own custom income/expense rows on any cadence.
+- **Fons Management** — projects your Fons income and expenses from now until a target date or a target Fons balance, combining every recurring source (dailies, weeklies, monthly resets, patch-cycle buyouts) with whatever you're spending on gifts. Rows are drag-to-reorder and toggle on/off.
+  - **Bond gift rows** — pick a **Character** and a **Bond amount** (100/200/400), set **gifts/day**, and the row auto-fills the gift item's name and shop location from the Bond Guide data, then folds `gifts/day × Fons per gift` into your daily Fons burn. That's the only thing this app tracks about bond gifting — not level, not exp, just the cost.
+  - **Custom rows** — add any other one-off or recurring income/expense on your own cadence.
 - **Bond Guide** — a reference table of the cheapest 200-bond and 400-bond gift item per character, with cost and shop location.
 
 ## Bond mechanics (for context)
 
-Bond is a 10-level meter per character. Each level requires a fixed amount of bond exp to clear (see `data/affinity.js`); gifts spend Fons and grant a fixed bond amount (typically 100/200/400 depending on the item). This app doesn't track *how* you spend Fons on anything else — it only projects the Fons income side and the bond-gifting expense side, so you can see whether your current farm rate covers your gifting plan by a given date.
+Bond is a 10-level meter per character, raised by giving gifts that cost Fons and grant a fixed bond amount (100/200/400 depending on the item). This app doesn't track level or exp progress toward that meter at all — it only cares about the Fons side: what your gifting plan costs per day, so you can see whether your farm rate covers it.
 
 ## Relationship to NTEelie
 
-This app is a standalone fork of the Fons/Bond tracker originally built inside [NTEelie](https://github.com/urakihs/nteelie), a private level-up planner for the same game. The character roster here is intentionally lightweight — just identity (name/portrait) and bond state, with none of the level/talent/arc-leveling material-cost system from the full planner.
+This app is a standalone fork of the Fons tracker originally built inside [NTEelie](https://github.com/urakihs/nteelie), a private level-up planner for the same game. It intentionally carries none of the planner's character roster, level/talent/arc-leveling system, or bond-progression tracking — just Fons Management and Bond Guide.
 
 ## Data & saving
 
-- All data (roster, bond plans, Fons settings) auto-saves to `localStorage` under the key `pink-paws-planner-v1`.
+- All data (Fons balance, target, and rows) auto-saves to `localStorage` under the key `pink-paws-planner-v2`.
 - **Export** downloads your save as a dated JSON file.
 - **Import** replaces your current save with a previously exported file.
 
 ## Data status
 
-`data/characters.js` is currently a full unfiltered carry-over from the source planner (it includes level/talent/console fields this app never reads) — safe but somewhat bloated; a future pass could trim it to just `{id, name, rank, element}`. Gift item pricing (`data/shopItems.js`) and the Bond Guide picks (`data/bondGuide.js`) are still being filled in for some characters — see the source repo's data-tracking notes for what's confirmed vs. pending.
+- `data/characters.js` is trimmed to just `{id, name}` — enough to label a bond gift row and look up Bond Guide entries.
+- `data/affinity.js` is trimmed to just the bond EXP ladder constants (`BOND_NEEDED`/`BOND_CUM`/`BOND_MAX_LEVEL`), used only for Bond Guide's "Total Fons to max" column.
+- `data/bondGuide.js` only records the cheapest **200-bond and 400-bond** item per character — there's no 100-bond entry for anyone. A 100-bond row will show no auto-filled item/location; type in the Fons/gift cost manually.

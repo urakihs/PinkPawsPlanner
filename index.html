@@ -12,7 +12,6 @@
   --bg: #0a0c10; --surface: #111318; --surface2: #1a1d24;
   --border: #2a2d35; --accent: #e8b84b; --accent2: #4b8ee8;
   --text: #e8eaf0; --muted: #9ba3b4; --success: #4be89a; --danger: #e84b6b;
-  --rank-s: #e8b84b; --rank-a: #934be8; --rank-b: #4b8ee8;
   --sidebar-w: 225px;
 }
 * { box-sizing: border-box; }
@@ -42,107 +41,6 @@ a { color: inherit; }
 .page-title { font-size: 24px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; color: var(--accent); }
 .page-sub { font-size: 14px; color: var(--muted); margin-top: 4px; }
 
-/* ── Roster / character picker (from NTEelie's Characters page + Add Character modal) ── */
-.roster-toolbar { display: flex; align-items: center; gap: 14px; margin-bottom: 18px; flex-wrap: wrap; }
-.char-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 14px; }
-.char-card { position: relative; display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 14px 8px 12px; border-radius: 12px; border: 1px solid var(--border); background: var(--surface2); cursor: pointer; transition: all .15s; text-align: center; }
-.char-card:hover { border-color: var(--accent); transform: translateY(-2px); }
-.char-card.dormant { opacity: .45; }
-.char-card .db-avatar { width: 64px; height: 64px; }
-.char-card .db-char-name { font-size: 13px; }
-.char-card .bond-mini { font-size: 11px; color: var(--muted); margin-top: -2px; }
-.char-card .status-toggle { position: absolute; top: 6px; right: 6px; width: 20px; height: 20px; border-radius: 50%; border: 1px solid var(--border); background: var(--surface); display: flex; align-items: center; justify-content: center; font-size: 11px; color: var(--muted); }
-.char-card .status-toggle:hover { color: var(--accent); border-color: var(--accent); }
-.add-char-card { border-style: dashed; justify-content: center; }
-.add-char-card:hover { border-color: var(--accent); background: rgba(232,184,75,.04); }
-.cc-add-avatar { width: 64px; height: 64px; border-radius: 50%; border: 1.5px dashed var(--muted); display: flex; align-items: center; justify-content: center; font-size: 26px; color: var(--muted); }
-.no-results { grid-column: 1/-1; text-align: center; color: var(--muted); font-size: 15px; padding: 32px; }
-
-.overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.75); z-index: 100; align-items: center; justify-content: center; }
-.overlay.open { display: flex; }
-.db-modal { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; width: 560px; max-width: 96vw; max-height: 88vh; display: flex; flex-direction: column; overflow: hidden; }
-.db-header { padding: 16px 18px; border-bottom: 1px solid var(--border); flex-shrink: 0; }
-.db-header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
-.db-title { font-size: 16px; font-weight: 600; }
-.db-close { background: transparent; border: none; color: var(--muted); font-size: 20px; cursor: pointer; }
-.db-close:hover { color: var(--text); }
-.search-input { background: var(--surface2); border: 1px solid var(--border); border-radius: 6px; color: var(--text); font-size: 14px; padding: 8px 12px; outline: none; transition: border-color .2s; width: 100%; font-family: inherit; }
-.search-input:focus { border-color: var(--accent); }
-.db-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 12px; padding: 16px 18px; overflow-y: auto; flex: 1; }
-.db-char-card { display: flex; flex-direction: column; align-items: center; gap: 6px; cursor: pointer; padding: 10px 6px; border-radius: 10px; border: 1px solid var(--border); background: var(--surface2); transition: all .15s; position: relative; }
-.db-char-card:hover { border-color: var(--accent); background: rgba(232,184,75,.05); transform: translateY(-2px); }
-.db-char-card.already-added { opacity: .45; cursor: default; }
-.db-char-card.already-added:hover { transform: none; border-color: var(--border); background: var(--surface2); }
-.db-avatar { width: 58px; height: 58px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: 600; border: 2px solid; overflow: hidden; margin: 0 auto; }
-.db-avatar img { width: 100%; height: 100%; object-fit: cover; }
-.db-avatar.rank-s { border-color: var(--rank-s); color: var(--rank-s); background: rgba(232,184,75,.1); }
-.db-avatar.rank-a { border-color: var(--rank-a); color: var(--rank-a); background: rgba(147,75,232,.1); }
-.db-char-name { font-size: 13px; color: var(--text); text-align: center; font-weight: 500; }
-.added-badge { position: absolute; top: 4px; right: 4px; width: 17px; height: 17px; border-radius: 50%; background: var(--success); display: flex; align-items: center; justify-content: center; font-size: 10px; color: #0a0c10; font-weight: 600; }
-
-/* ── Bond editor modal ── */
-.detail-modal { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; width: 620px; max-width: 92vw; max-height: 86vh; display: flex; flex-direction: column; overflow: hidden; }
-.modal-header { display: flex; align-items: center; gap: 10px; padding: 14px 16px; border-bottom: 1px solid var(--border); flex-shrink: 0; }
-.modal-avatar { width: 42px; height: 42px; border-radius: 50%; background: var(--surface2); border: 2px solid var(--rank-s); display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 600; color: var(--rank-s); flex-shrink: 0; overflow: hidden; }
-.modal-avatar img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
-.modal-avatar.rank-a { border-color: var(--rank-a); color: var(--rank-a); }
-.modal-title { font-size: 17px; font-weight: 600; letter-spacing: .5px; flex: 1; color: var(--text); min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.modal-close { background: transparent; border: none; color: var(--muted); font-size: 18px; cursor: pointer; flex-shrink: 0; }
-.modal-close:hover { color: var(--text); }
-.modal-body { padding: 18px; overflow-y: auto; flex: 1; }
-.meta-pill { font-size: 12px; font-weight: 500; letter-spacing: .5px; padding: 3px 10px; border-radius: 5px; text-transform: uppercase; background: var(--surface2); color: var(--muted); }
-.char-meta { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
-
-.bond-sec { margin-top: 0; }
-.bond-sec h3 { font-size: 11px; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; color: var(--muted); margin: 0 0 10px; }
-.bond-hdr { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 10px; }
-.bond-row { display: flex; gap: 16px; flex-wrap: wrap; align-items: flex-start; margin-bottom: 14px; }
-.bond-fld { display: flex; flex-direction: column; gap: 6px; }
-.bond-fld label { font-size: 11px; color: var(--muted); }
-.bond-sec select, .bond-sec input { background: var(--surface); border: 1px solid var(--border); color: var(--text); border-radius: 6px; padding: 8px 11px; font-family: inherit; font-size: 14px; font-weight: 500; line-height: 1.3; height: 38px; box-sizing: border-box; }
-.bond-sec select { width: auto; min-width: 80px; padding-right: 28px; }
-.bond-sec input[type=number] { width: 84px; -moz-appearance: textfield; }
-.bond-sec input[type=number]::-webkit-inner-spin-button, .bond-sec input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
-.bond-items { width: 100%; border-collapse: collapse; margin-top: 0; }
-.bond-items th, .bond-items td { text-align: left; padding: 4px 12px 4px 0; font-size: 12px; vertical-align: top; }
-.bond-items th { font-size: 11px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: .5px; padding-top: 4px; }
-.bond-items input[type=text] { width: 100%; min-width: 90px; }
-.bond-items input[type=number] { width: 72px; }
-.bond-item-loc-row td { padding: 2px 12px 10px 0; }
-.bond-item-loc { font-size: 10.5px; color: var(--muted); }
-.bond-actbtn { background: var(--surface); border: 1px solid var(--border); color: var(--muted); padding: 0 13px; height: 38px; box-sizing: border-box; border-radius: 6px; cursor: pointer; font-family: inherit; font-size: 11px; min-width: 92px; display: inline-flex; align-items: center; justify-content: center; white-space: nowrap; }
-.bond-actbtn.on { border-color: var(--accent); color: var(--accent); font-weight: 600; }
-.bond-item-row td:last-child { vertical-align: middle; text-align: center; }
-.bond-del { background: none; border: 0; color: var(--muted); cursor: pointer; font-size: 14px; height: 38px; padding: 0 4px; display: inline-flex; align-items: center; justify-content: center; }
-.bond-del:hover { color: var(--danger); }
-.bond-add-item { margin-top: 8px; }
-.bond-stepper { display: inline-flex; border: 1px solid var(--border); border-radius: 6px; overflow: hidden; height: 38px; }
-.bond-stepper button { background: var(--surface); color: var(--text); border: 0; width: 28px; font-size: 14px; cursor: pointer; }
-.bond-stepper button:disabled { color: var(--border); cursor: not-allowed; }
-.bond-stepper .v { min-width: 30px; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 500; font-variant-numeric: tabular-nums; }
-.bond-pill { font-size: 11px; padding: 3px 8px; border-radius: 999px; border: 1px solid var(--border); color: var(--muted); white-space: nowrap; }
-.bond-pill.cap { color: var(--rank-s); border-color: rgba(232,184,75,.5); }
-.bond-toggle { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; user-select: none; font-size: 13px; }
-.bond-toggle .sw { width: 34px; height: 19px; border-radius: 999px; background: var(--border); position: relative; transition: .15s; flex-shrink: 0; }
-.bond-toggle .sw::after { content: ""; position: absolute; top: 2px; left: 2px; width: 15px; height: 15px; border-radius: 50%; background: var(--text); transition: .15s; }
-.bond-toggle.on .sw { background: #ff6b9d; }
-.bond-toggle.on .sw::after { left: 17px; }
-.bond-toggle.disabled { opacity: .45; cursor: not-allowed; }
-.bond-toggle.auto.on .sw { background: var(--accent); }
-.bond-warn { color: var(--rank-s); font-size: 11px; }
-.bond-hint { font-size: 11px; color: var(--muted); }
-.bond-reads { display: flex; gap: 12px; margin-top: 16px; flex-wrap: wrap; }
-.bond-read { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 10px 14px; min-width: 90px; }
-.bond-read .k { font-size: 11px; color: var(--muted); }
-.bond-read .v { font-size: 14px; font-weight: 600; font-variant-numeric: tabular-nums; margin-top: 2px; }
-.bond-bar { height: 10px; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; overflow: hidden; position: relative; margin-top: 12px; }
-.bond-bar .have { position: absolute; left: 0; top: 0; bottom: 0; background: var(--accent); }
-.bond-bar .plan { position: absolute; top: 0; bottom: 0; background: repeating-linear-gradient(45deg, #7ad0c0, #7ad0c0 4px, #6bbcab 4px, #6bbcab 8px); }
-.bond-barcap { display: flex; justify-content: space-between; font-size: 10px; color: var(--muted); margin-top: 4px; }
-.bond-barcap .bc-end { color: #7ad0c0; }
-.bond-autorow { display: flex; gap: 18px; margin-top: 16px; flex-wrap: wrap; }
-.bond-manual-row { margin-top: 14px; }
-
 /* ── Fons Management (verbatim from NTEelie's Fons Management page) ── */
 .fons-header-bar { display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; flex-wrap: wrap; margin-bottom: 20px; }
 .fons-header-controls { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
@@ -169,16 +67,16 @@ a { color: inherit; }
 .fons-del-btn:hover { color: var(--danger); }
 .fons-custom-actions { display: flex; align-items: center; justify-content: flex-start; gap: 10px; white-space: nowrap; }
 .fons-custom-actions .fons-grip { margin-right: 0; }
-.fons-bond-row, .fons-custom-row { cursor: default; }
-.fons-bond-row.dragging, .fons-custom-row.dragging { opacity: .4; }
-.fons-bond-row.drop-target, .fons-custom-row.drop-target { outline: 2px solid var(--accent); outline-offset: -2px; }
+.fons-custom-row { cursor: default; }
+.fons-custom-row.dragging { opacity: .4; }
+.fons-custom-row.drop-target { outline: 2px solid var(--accent); outline-offset: -2px; }
 .fons-custom-cadence-row { display: flex; gap: 6px; flex-wrap: wrap; }
 .fons-custom-cadence-sel, .fons-custom-weekday-sel { background: var(--surface2); border: 1px solid var(--border); border-radius: 6px; color: var(--text); font-size: 12px; padding: 4px 6px; font-family: inherit; }
 .fons-custom-dom-inp { background: var(--surface2); border: 1px solid var(--border); border-radius: 6px; color: var(--text); font-size: 12px; padding: 4px 6px; width: 52px; font-family: inherit; }
 .fons-chip { display: inline-block; font-size: 10px; font-weight: 700; letter-spacing: .5px; text-transform: uppercase; padding: 3px 9px; border-radius: 999px; border: 1px solid; white-space: nowrap; }
 .fons-ring circle { transition: stroke-dasharray .25s ease; }
-.fons-custom-add-wrap { max-width: 620px; margin-top: 0; }
-.fons-custom-add-btn { background: var(--surface); border: 1px dashed var(--border); color: var(--muted); padding: 9px 16px; border-radius: 0 0 10px 10px; cursor: pointer; font-size: 13px; font-family: inherit; width: 100%; text-align: left; transition: all .15s; display: block; }
+.fons-custom-add-wrap { display: flex; gap: 8px; flex-wrap: wrap; }
+.fons-custom-add-btn { background: var(--surface); border: 1px dashed var(--border); color: var(--muted); padding: 9px 16px; border-radius: 8px; cursor: pointer; font-size: 13px; font-family: inherit; text-align: left; transition: all .15s; }
 .fons-custom-add-btn:hover { border-color: var(--accent); color: var(--accent); }
 .fons-summary-val { font-size: 24px; font-weight: 700; color: var(--accent); }
 .fons-body-grid { display: grid; grid-template-columns: minmax(0, 700px) 300px; gap: 16px; align-items: start; }
@@ -203,12 +101,12 @@ a { color: inherit; }
 .fons-tbl { width: 100%; border-collapse: collapse; font-size: 15px; table-layout: fixed; }
 .fons-tbl thead tr { background: var(--surface2); }
 .fons-tbl th { padding: 11px 16px; text-align: left; color: var(--muted); font-weight: 500; font-size: 13px; letter-spacing: .5px; text-transform: uppercase; }
-.fons-tbl th:nth-child(1), .fons-tbl td:nth-child(1) { width: 14%; text-align: left; padding-left: 16px; padding-right: 8px; white-space: nowrap; }
-.fons-tbl th:nth-child(2), .fons-tbl td:nth-child(2) { width: 19%; text-align: left; }
-.fons-tbl th:nth-child(3), .fons-tbl td:nth-child(3) { width: 17%; text-align: center; }
+.fons-tbl th:nth-child(1), .fons-tbl td:nth-child(1) { width: 12%; text-align: left; padding-left: 16px; padding-right: 8px; white-space: nowrap; }
+.fons-tbl th:nth-child(2), .fons-tbl td:nth-child(2) { width: 30%; text-align: left; }
+.fons-tbl th:nth-child(3), .fons-tbl td:nth-child(3) { width: 12%; text-align: center; }
 .fons-tbl th:nth-child(4), .fons-tbl td:nth-child(4) { width: 12%; text-align: center; }
-.fons-tbl th:nth-child(5), .fons-tbl td:nth-child(5) { width: 20%; text-align: right; }
-.fons-tbl th:last-child, .fons-tbl td:last-child:not(.fons-subhdr-cell) { width: 18%; text-align: right; }
+.fons-tbl th:nth-child(5), .fons-tbl td:nth-child(5) { width: 17%; text-align: right; }
+.fons-tbl th:last-child, .fons-tbl td:last-child:not(.fons-subhdr-cell) { width: 17%; text-align: right; }
 .fons-row-disabled td { opacity: .45; text-decoration: line-through; text-decoration-color: var(--muted); }
 .fons-row-disabled td:first-child { opacity: 1; text-decoration: none; }
 .fons-cb { width: 17px; height: 17px; cursor: pointer; accent-color: var(--accent); vertical-align: middle; }
@@ -223,7 +121,14 @@ a { color: inherit; }
 .fons-section-hdr { font-size: 13px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); margin: 32px 0 10px; max-width: 820px; padding-bottom: 6px; border-bottom: 1px solid var(--border); }
 .fons-wide-wrap { background: var(--surface); border-radius: 10px; overflow: hidden; max-width: 820px; }
 .fons-spend { color: var(--danger, #e05a5a); font-weight: 600; }
-.fons-gift-slot { font-size: 13px; color: var(--muted); }
+
+/* ── Bond Cadence row (Character + Bond amount → auto-filled gift item) ── */
+.fons-bondcad-controls { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.fons-bondcad-sel, .fons-bondcad-num { background: var(--surface2); border: 1px solid var(--border); border-radius: 6px; color: var(--text); font-size: 12px; padding: 4px 6px; font-family: inherit; }
+.fons-bondcad-sel[data-bond-field="character"] { min-width: 110px; }
+.fons-bondcad-num { width: 56px; }
+.fons-bondcad-note { font-size: 10.5px; color: var(--muted); margin-top: 4px; }
+.fons-bondcad-manual { background: var(--surface2); border: 1px solid var(--border); border-radius: 6px; color: var(--text); font-size: 11px; padding: 2px 6px; width: 90px; font-family: inherit; }
 
 /* ── Bond Guide + shared "efficiency-table" look ── */
 .fons-eff-tbl, .bond-guide-tbl { width: 100%; border-collapse: collapse; font-size: 15px; table-layout: fixed; }
@@ -244,10 +149,6 @@ a { color: inherit; }
 .bond-guide-tbl .bond-guide-block-end td { border-top: none; }
 .bond-guide-tbl tbody.bond-guide-block:hover td { background: rgba(255,255,255,.02); }
 .bond-guide-tbl .bond-guide-empty td { text-align: center; color: var(--muted); padding: 24px 16px; }
-
-/* ── Settings row on the Characters page (Zero's gift boost) ── */
-.settings-row { display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--muted); margin-bottom: 18px; }
-.settings-row select { background: var(--surface2); border: 1px solid var(--border); color: var(--text); border-radius: 6px; padding: 6px 10px; font-family: inherit; }
 </style>
 </head>
 <body>
@@ -258,8 +159,7 @@ a { color: inherit; }
     <p>Fons &amp; Bond &middot; NTE</p>
   </div>
   <div class="sidebar-nav">
-    <div class="nav-item active" data-page="characters" title="Characters"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg><span>Characters</span></div>
-    <div class="nav-item" data-page="fons" title="Fons Management"><svg viewBox="0 0 24 24"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg><span>Fons Management</span></div>
+    <div class="nav-item active" data-page="fons" title="Fons Management"><svg viewBox="0 0 24 24"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg><span>Fons Management</span></div>
     <div class="nav-item" data-page="bond-guide" title="Bond Guide"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg><span>Bond Guide</span></div>
   </div>
   <div class="sidebar-footer">
@@ -272,28 +172,8 @@ a { color: inherit; }
 
 <div class="main">
 
-  <!-- Characters (roster + bond editor entry point) -->
-  <div class="page active" id="page-characters">
-    <div class="page-header">
-      <div class="page-title">Characters</div>
-      <div class="page-sub">Your bond roster. Click a character to plan gifts and track bond progress; the ring badge toggles them out of your Fons calculations.</div>
-    </div>
-    <div class="settings-row">
-      <span>Zero's Gift-Affinity rank (Life Skill 1, +5% bond from gifts while a recipient is within Zero's level cap):</span>
-      <select id="zero-rank-sel">
-        <option value="0">Not owned / unranked</option>
-        <option value="1">Rank 1 (cap Lv 4)</option>
-        <option value="2">Rank 2 (cap Lv 5)</option>
-        <option value="3">Rank 3 (cap Lv 6)</option>
-        <option value="4">Rank 4 (cap Lv 7)</option>
-        <option value="5">Rank 5 (cap Lv 8)</option>
-      </select>
-    </div>
-    <div class="char-grid" id="roster-grid"></div>
-  </div>
-
   <!-- Fons Management -->
-  <div class="page" id="page-fons">
+  <div class="page active" id="page-fons">
     <div class="fons-header-bar">
       <div class="page-header" style="margin-bottom:0"><div class="page-title">Fons Management</div><div class="page-sub">Calculate Fons income from now until a target date or savings goal. Only guaranteed sources are shown; limited-time events are excluded.</div></div>
       <div class="fons-header-controls">
@@ -320,14 +200,17 @@ a { color: inherit; }
           <thead><tr><th></th><th>Source</th><th>Cadence</th><th>Instances</th><th>Fons / Run</th><th>Total</th></tr></thead>
           <tbody id="fons-table-body"></tbody>
         </table>
-        <button class="fons-custom-add-btn" onclick="fonsAddCustom()">+ Add custom income / expense</button>
-        <p class="fons-tbl-note">Toggling rows on or off only affects this Fons calculation &mdash; it does not change your bond gifting plan.</p>
       </div>
       <div class="fons-rail">
         <div class="fons-widget-card" id="fons-widget-modespecific"></div>
         <div class="fons-widget-card" id="fons-widget-today"></div>
       </div>
     </div>
+    <div class="fons-custom-add-wrap" style="margin-top:12px">
+      <button class="fons-custom-add-btn" onclick="fonsAddBondRow()">+ Add bond gift</button>
+      <button class="fons-custom-add-btn" onclick="fonsAddCustom()">+ Add custom income / expense</button>
+    </div>
+    <p class="fons-tbl-note">Toggling rows on or off only affects this Fons calculation. Bond gifts are just a Fons/day cost here &mdash; this app doesn't track bond level or exp, only what gifting is spending you per day.</p>
   </div>
 
   <!-- Bond Guide -->
@@ -342,32 +225,6 @@ a { color: inherit; }
 
 </div>
 
-<!-- Character picker -->
-<div class="overlay" id="db-overlay">
-  <div class="db-modal">
-    <div class="db-header">
-      <div class="db-header-top"><div class="db-title">Add Character</div><button class="db-close" id="db-close">&#10005;</button></div>
-      <input type="text" class="search-input" id="db-search" placeholder="Search characters&hellip;">
-    </div>
-    <div class="db-grid" id="db-grid"></div>
-  </div>
-</div>
-
-<!-- Bond editor modal -->
-<div class="overlay" id="detail-overlay">
-  <div class="detail-modal">
-    <div class="modal-header">
-      <div class="modal-avatar" id="modal-avatar"></div>
-      <div class="modal-title" id="modal-title"></div>
-      <button class="modal-close" onclick="closeDetail()">&#10005;</button>
-    </div>
-    <div class="modal-body">
-      <div class="char-meta" id="char-meta"></div>
-      <div id="bond-section"></div>
-    </div>
-  </div>
-</div>
-
 <script src="data/characters.js"></script>
 <script src="data/shopItems.js"></script>
 <script src="data/affinity.js"></script>
@@ -380,33 +237,32 @@ a { color: inherit; }
 /* ============================================================================
  *  Pink Paws Planner — app logic
  * ----------------------------------------------------------------------------
- *  A standalone extraction of NTEelie's Fons Management + Bond tracking pages.
- *  The bond math (affinity.js), Fons projector data (fons.js), gift catalog
- *  (shopItems.js/bondGuide.js) and date/recurrence helpers (calc.js) are
- *  ported verbatim from the private planner. This file re-implements just the
- *  glue: a lightweight roster (id + active/dormant, no level/talent/arc data),
- *  the bond editor modal, page routing, and save/export/import.
+ *  A standalone extraction of NTEelie's Fons Management + Bond Guide pages.
+ *  Fons projector data (fons.js), gift catalog (shopItems.js/bondGuide.js),
+ *  the bond EXP ladder (affinity.js, trimmed) and date/recurrence helpers
+ *  (calc.js, trimmed) are ported from the private planner.
+ *
+ *  There is no roster, no bond-level/exp tracking, and no bond editor modal --
+ *  this app only cares about one number: Fons spent per day on gifts. A
+ *  "Bond Cadence" row (kind:'bond' inside fonsCustomRows) is just Character +
+ *  Bond amount (100/200/400) + gifts/day; the item name/cost/location are
+ *  looked up from Bond Guide's data and folded into a daily Fons cost that
+ *  flows through the exact same recurring-row math as any other custom entry.
  * ==========================================================================*/
 
-const SAVE_KEY = 'pink-paws-planner-v1';
+const SAVE_KEY = 'pink-paws-planner-v2';
 
 // ── State ──────────────────────────────────────────────────────────────────
-let roster = [];              // [{dbId, status:'active'|'dormant'}]
-let affinityState = {};       // { [dbId]: { level, exp, target, items, activeItem, gifts, dating, autoConsume, autoDeduct } }
-let affinityRealizedDay = null;
 let inventory = {};           // { Fons: n }
 let fonsTargetDate = '';
 let fonsDisabled = {};
 let fonsMode = 'date';        // 'date' | 'goal'
 let fonsTargetGoal = 0;
-let fonsCustomRows = [];
-let bondFonsOrder = [];
+let fonsCustomRows = [];      // [{id, kind:'bond'|undefined, ...}] -- see fonsAddBondRow/fonsAddCustom
 const DEFAULT_FONS_ORDER = (typeof FONS_SOURCES !== 'undefined' ? FONS_SOURCES : []).map(s => s.id);
 let fonsOrder = DEFAULT_FONS_ORDER.slice();
-let zeroGiftRankManual = 0;
-let activeDetailId = null;
-let currentPage = 'characters';
-let _bondDragId = null, _customDragId = null;
+let currentPage = 'fons';
+let _customDragId = null;
 
 const FONS_CADENCE_BUCKETS = {
   daily:    {label:'Daily',     color:'#e8b84b'},
@@ -418,31 +274,12 @@ const FONS_CADENCE_BUCKETS = {
   once:     {label:'One-time',  color:'#9b7ae8'},
 };
 
-const ELEMENT_ICONS={'Anima':'assets/icons/elements/anima.png','Cosmos':'assets/icons/elements/cosmos.png','Psyche':'assets/icons/elements/psyche.png','Incantation':'assets/icons/elements/incantation.png','Lakshana':'assets/icons/elements/lakshana.png','Chaos':'assets/icons/elements/chaos.png'};
-
 // ── Small shared helpers ─────────────────────────────────────────────────
 function activityNow(){ return new Date(); }
 function getInv(name){ return inventory[name]||0; }
 function setInv(name,val){ inventory[name]=clampInv(val); }
 function adjustInv(name,delta){ setInv(name,getInv(name)+delta); }
-function zeroGiftRank(){ return Math.max(0,Math.min(5,zeroGiftRankManual|0)); }
 const fmtQty=(n)=>(parseInt(n,10)||0).toLocaleString('en-US');
-function getInitials(n){return n?n.trim().substring(0,2).toUpperCase():'?';}
-function elemIcon(el,sz=16){return ELEMENT_ICONS[el]?`<img src="${ELEMENT_ICONS[el]}" alt="${el}" style="width:${sz}px;height:${sz}px;object-fit:contain">`:'';}
-const CHAR_ART_BASE='assets/icons/characters/';
-function charArtSrc(id){
-  if(id&&id.startsWith('custom-'))return null;
-  if(id==='zero')return `${CHAR_ART_BASE}zero-female.png`;
-  return `${CHAR_ART_BASE}${id}.png`;
-}
-function charAvatar(id,name,element){
-  const art=charArtSrc(id);
-  const el=ELEMENT_ICONS[element];
-  const elFallback=el?`this.onerror=null;this.src='${el}'`:`this.onerror=null;this.style.display='none'`;
-  if(art)return `<img src="${art}" alt="${name}" onerror="${elFallback}">`;
-  if(el)return `<img src="${el}" alt="${element}">`;
-  return getInitials(name);
-}
 function bgEsc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 function bgTotalFons(tierBond,costPerUnit){
   if(!costPerUnit)return undefined;
@@ -482,338 +319,41 @@ function sanitizeFonsOrder(arr){
   for(const id of DEFAULT_FONS_ORDER){if(!seen.has(id))out.push(id);}
   return out;
 }
-// Build a calc.js bond-state object for one character from affinityState.
-function bondStateFor(dbId,active){
-  const a=affinityState[dbId]||{};
-  const items=Array.isArray(a.items)?a.items:[];
-  const ai=(typeof a.activeItem==='number')?a.activeItem:-1;
-  const item=(ai>=0&&items[ai])?items[ai]:null;
-  const maxLvl=(typeof BOND_MAX_LEVEL!=='undefined')?BOND_MAX_LEVEL:10;
-  return {active:!!active,level:a.level||0,exp:a.exp||0,
-    target:(typeof a.target==='number')?a.target:maxLvl,
-    gifts:((a.level||0)>=maxLvl)?0:(a.gifts||0),dating:!!a.dating,item,
-    zeroCap:(typeof bondZeroCap==='function')?bondZeroCap(zeroGiftRank()):-1};
+
+// ── Bond Cadence rows: Character + Bond amount → looked-up gift item ─────
+// Looks up the Bond Guide's recorded item for (characterId, tier). tier 100
+// has no Bond Guide data (the guide only tracks the cheapest 200/400 item
+// per character) -- callers fall back to a manually-typed Fons/gift.
+function fonsBondLookup(characterId, tier){
+  const guide=(typeof BOND_GUIDE_DB!=='undefined')?BOND_GUIDE_DB.find(g=>g.characterId===characterId):null;
+  const itemId = tier===200 ? (guide&&guide.item200Id) : tier===400 ? (guide&&guide.item400Id) : null;
+  const item = itemId && typeof SHOP_ITEM_DB!=='undefined' ? SHOP_ITEM_DB.find(i=>i.id===itemId) : null;
+  return item ? {name:item.name, location:item.location||'', costPerUnit:item.costPerUnit||0} : null;
 }
-function orderedActiveRosterChars(){
-  const active=roster.filter(r=>r.status==='active');
-  const nameOf=rc=>{const db=CHARACTER_DB.find(c=>c.id===rc.dbId);return (db&&db.name)||rc.dbId;};
-  const byId={};active.forEach(rc=>{byId[rc.dbId]=rc;});
-  const seen=new Set();
-  const out=[];
-  for(const id of bondFonsOrder){if(byId[id]&&!seen.has(id)){seen.add(id);out.push(byId[id]);}}
-  const rest=active.filter(rc=>!seen.has(rc.dbId)).sort((a,b)=>nameOf(a).localeCompare(nameOf(b)));
-  return out.concat(rest);
+// Recomputes a bond row's derived Fons/day cost (c.fpr) from its
+// character/tier/giftsPerDay, so every existing recurring-row total/Instances
+// calculation (customRuns/customTotal, goal-mode simulation, Available Today)
+// just works on it unchanged -- a bond row IS a recurring custom row.
+function fonsRecomputeBondRow(c){
+  const found=fonsBondLookup(c.characterId,c.tier);
+  const cost=found?found.costPerUnit:Math.max(0,c.manualFons|0);
+  c.fpr=-(Math.max(0,c.giftsPerDay|0)*Math.max(0,cost|0));
+}
+function fonsAddBondRow(){
+  const first=(typeof CHARACTER_DB!=='undefined'&&CHARACTER_DB[0])?CHARACTER_DB[0].id:null;
+  const anchor=serviceDateStr(serviceDayIndex(activityNow()));
+  const c={id:'b'+Date.now(),kind:'bond',characterId:first,tier:200,giftsPerDay:1,manualFons:0,rec:{type:'days',interval:1,anchor},fpr:0};
+  fonsRecomputeBondRow(c);
+  fonsCustomRows.push(c);
+  saveData();renderFons();
+}
+function fonsAddCustom(){
+  fonsCustomRows.push({id:'c'+Date.now(),name:'New entry',fpr:0,runs:1});
+  saveData();renderFons();
 }
 
-// ── Roster / character picker ────────────────────────────────────────────
-function renderRoster(){
-  const grid=document.getElementById('roster-grid');
-  if(!grid)return;
-  if(!roster.length){
-    grid.innerHTML=`<div class="char-card add-char-card" onclick="openCharPicker()"><div class="cc-add-avatar">+</div><div class="db-char-name">Add character</div></div>
-      <div class="no-results">No characters yet &mdash; add one to start planning bond &amp; gifts.</div>`;
-    return;
-  }
-  const cards=roster.slice().sort((a,b)=>{
-    const na=(CHARACTER_DB.find(c=>c.id===a.dbId)||{}).name||a.dbId;
-    const nb=(CHARACTER_DB.find(c=>c.id===b.dbId)||{}).name||b.dbId;
-    return na.localeCompare(nb);
-  }).map(rc=>{
-    const db=CHARACTER_DB.find(c=>c.id===rc.dbId);
-    if(!db)return '';
-    const a=affinityState[rc.dbId];
-    const lvl=a?(a.level||0):0;
-    const dormant=rc.status!=='active';
-    return `<div class="char-card ${dormant?'dormant':''}" data-dbid="${rc.dbId}">
-      <div class="status-toggle" title="${dormant?'Include in Fons calc':'Exclude from Fons calc'}" onclick="event.stopPropagation();toggleRosterStatus('${rc.dbId}')">${dormant?'&#9711;':'&#9679;'}</div>
-      <div class="db-avatar rank-${(db.rank||'').toLowerCase()}">${charAvatar(db.id,db.name,db.element)}</div>
-      <div class="db-char-name">${db.name}</div>
-      <div class="bond-mini">Bond Lv ${lvl}</div>
-    </div>`;
-  }).join('');
-  grid.innerHTML = cards + `<div class="char-card add-char-card" onclick="openCharPicker()"><div class="cc-add-avatar">+</div><div class="db-char-name">Add character</div></div>`;
-  grid.querySelectorAll('.char-card[data-dbid]').forEach(card=>{
-    card.addEventListener('click',()=>openCharacterDetail(card.dataset.dbid));
-  });
-}
-function toggleRosterStatus(dbId){
-  const rc=roster.find(c=>c.dbId===dbId);if(!rc)return;
-  const activating=rc.status!=='active';
-  rc.status=activating?'active':'dormant';
-  if(activating)bondReactivationCheck(dbId);
-  renderRoster();saveData();
-}
-function openCharPicker(){
-  document.getElementById('db-search').value='';
-  renderCharPickerGrid();
-  document.getElementById('db-overlay').classList.add('open');
-  setTimeout(()=>document.getElementById('db-search').focus(),100);
-}
-function closeCharPicker(){document.getElementById('db-overlay').classList.remove('open');}
-function renderCharPickerGrid(){
-  const grid=document.getElementById('db-grid');
-  if(!grid)return;
-  const q=(document.getElementById('db-search').value||'').trim().toLowerCase();
-  const addedIds=roster.map(r=>r.dbId);
-  const filtered=CHARACTER_DB.filter(c=>!q||c.name.toLowerCase().includes(q)).sort((a,b)=>a.name.localeCompare(b.name));
-  if(!filtered.length){grid.innerHTML='<div class="no-results">No characters found</div>';return;}
-  grid.innerHTML=filtered.map(c=>{
-    const added=addedIds.includes(c.id);
-    return `<div class="db-char-card ${added?'already-added':''}" ${added?'':` onclick="addCharFromDB('${c.id}')"`}>
-      <div class="db-avatar rank-${(c.rank||'').toLowerCase()}">${charAvatar(c.id,c.name,c.element)}</div>
-      <div class="db-char-name">${c.name}</div>
-      ${added?'<div class="added-badge">&#10003;</div>':''}
-    </div>`;
-  }).join('');
-}
-function addCharFromDB(dbId){
-  if(roster.find(c=>c.dbId===dbId))return;
-  roster.push({dbId,status:'active'});
-  closeCharPicker();renderRoster();saveData();openCharacterDetail(dbId);
-}
-
-// ── Bond editor (ported near-verbatim from NTEelie's character-modal Bond tab) ──
-function getAffinity(dbId){
-  let a=affinityState[dbId];
-  if(!a){a={level:0,exp:0,target:BOND_MAX_LEVEL,items:[],activeItem:-1,gifts:0,dating:false};affinityState[dbId]=a;}
-  if(!Array.isArray(a.items))a.items=[];
-  if(typeof a.activeItem!=='number')a.activeItem=-1;
-  // First-ever load for this character: seed from the Bond Guide when researched.
-  if(a.items.length===0){
-    const guide=(typeof BOND_GUIDE_DB!=='undefined')?BOND_GUIDE_DB.find(g=>g.characterId===dbId):null;
-    const shopItem=id=>(typeof SHOP_ITEM_DB!=='undefined'&&id)?SHOP_ITEM_DB.find(i=>i.id===id):null;
-    const it200=guide?shopItem(guide.item200Id):null;
-    const it400=guide?shopItem(guide.item400Id):null;
-    if(it200||it400){
-      if(it200)a.items.push({name:it200.name,fons:it200.costPerUnit||0,bond:200,owned:0,location:it200.location||''});
-      if(it400)a.items.push({name:it400.name,fons:it400.costPerUnit||0,bond:400,owned:0,location:it400.location||''});
-    }else{
-      a.items.push({name:'New gift',fons:0,bond:0,owned:0});
-      a.activeItem=0;
-    }
-  }
-  a.target=BOND_MAX_LEVEL;
-  if(typeof a.level!=='number')a.level=0;
-  if(typeof a.exp!=='number')a.exp=0;
-  if(typeof a.gifts!=='number')a.gifts=0;
-  if(typeof a.autoConsume!=='boolean')a.autoConsume=true;
-  if(typeof a.autoDeduct!=='boolean')a.autoDeduct=true;
-  if(a.level>=BOND_MAX_LEVEL)a.gifts=0;
-  return a;
-}
-function bondActiveGiftTotal(){let t=0;for(const rc of roster){if(rc.status!=='active')continue;const a=affinityState[rc.dbId];if(a&&(a.level||0)<BOND_MAX_LEVEL)t+=(a.gifts|0);}return t;}
-function bondDateHolder(){for(const rc of roster){if(rc.status!=='active')continue;const a=affinityState[rc.dbId];if(a&&a.dating)return rc.dbId;}return null;}
-function bondReactivationCheck(dbId){
-  const a=affinityState[dbId];if(!a)return;
-  let dateClash=false;
-  if(a.dating){for(const rc of roster){if(rc.status!=='active'||rc.dbId===dbId)continue;const o=affinityState[rc.dbId];if(o&&o.dating){dateClash=true;break;}}}
-  if(bondActiveGiftTotal()>BOND_GLOBAL_GIFT_CAP||dateClash){a.gifts=0;a.dating=false;}
-}
-function bondAfterChange(){renderBondSection();renderRoster();saveData();}
-function bondCompletionStr(proj){
-  if(!proj||!proj.feasible||!(proj.days>0))return '—';
-  return serviceDateStr(serviceDayIndex(activityNow())+proj.days-1);
-}
-function bondUpdateReadouts(){
-  const host=document.getElementById('bond-section');if(!host)return;
-  const dbId=activeDetailId;if(!dbId)return;
-  const rc=roster.find(c=>c.dbId===dbId);const active=!!(rc&&rc.status==='active');
-  const a=getAffinity(dbId);const MAX=BOND_MAX_LEVEL;
-  const proj=bondProject(bondStateFor(dbId,active));
-  const lvNeed=a.level<MAX?BOND_NEEDED[a.level]:0;
-  const inLvl=Math.min(a.exp,lvNeed||1);
-  const havePct=lvNeed?Math.min(100,inLvl/lvNeed*100):100;
-  const planPct=active&&lvNeed?Math.min(100-havePct,proj.planToday/lvNeed*100):0;
-  const reads=host.querySelectorAll('.bond-read .v');
-  if(reads[0])reads[0].textContent=proj.feasible?abbrevNum(proj.fons):'—';
-  if(reads[1])reads[1].textContent=proj.remaining>0?abbrevNum(proj.remaining):'0';
-  if(reads[2])reads[2].textContent=proj.remaining<=0?'0':(proj.feasible?abbrevNum(proj.days):'—');
-  if(reads[3])reads[3].textContent=bondCompletionStr(proj);
-  const have=host.querySelector('.bond-bar .have');if(have)have.style.width=havePct+'%';
-  const plan=host.querySelector('.bond-bar .plan');if(plan){plan.style.left=havePct+'%';plan.style.width=planPct+'%';}
-  const curEl=host.querySelector('.bond-barcap .bc-cur');
-  if(curEl)curEl.textContent='Lv '+a.level+(a.level<MAX?' ('+inLvl+'/'+lvNeed+')':' (max)');
-  const endEl=host.querySelector('.bond-barcap .bc-end');
-  if(endEl)endEl.textContent=' → Lv '+proj.endLevel+(proj.endLevel<MAX?' ('+proj.endExp+'/'+BOND_NEEDED[proj.endLevel]+')':' (max)');
-  const addEl=host.querySelector('.bond-barcap .bc-add');
-  if(addEl)addEl.textContent=proj.planToday>0?'+'+abbrevNum(proj.planToday)+' Today':'';
-}
-function bondExpLive(v){
-  const a=getAffinity(activeDetailId);
-  if(a.level>=BOND_MAX_LEVEL){a.exp=0;saveData();bondUpdateReadouts();return;}
-  const cap=BOND_NEEDED[a.level];
-  const typed=Math.max(0,parseInt(v)||0);
-  if(typed>=cap){
-    const r=bondApplyManualExp(a.level,typed);a.level=r.level;a.exp=r.exp;
-    if(a.level<BOND_DATE_GATE_LEVEL)a.dating=false;
-    if(a.level>=BOND_MAX_LEVEL)a.gifts=0;
-    bondAfterChange();
-    const f=document.querySelector('#bond-section .bond-row input[type=number]');if(f){f.focus();if(f.select)f.select();}
-  } else {
-    a.exp=typed;saveData();bondUpdateReadouts();
-  }
-}
-// Auto-bank bond exp for every service-day reset crossed since the last run (catch-up).
-function realizeBondDays(doRender){
-  const today=serviceDayIndex(activityNow());
-  if(typeof affinityRealizedDay!=='number'){affinityRealizedDay=today;saveData();return;}
-  if(today<=affinityRealizedDay)return;
-  let days=today-affinityRealizedDay;if(days>366)days=366;
-  let changed=false;
-  for(const rc of roster){
-    if(rc.status!=='active')continue;
-    const a=affinityState[rc.dbId];if(!a||a.level>=BOND_MAX_LEVEL)continue;
-    if(a.autoConsume===false)continue;
-    const doDeduct=a.autoDeduct!==false;
-    let charChanged=false;
-    for(let d=0;d<days;d++){
-      if(a.level>=BOND_MAX_LEVEL)break;
-      const add=bondDayExp(bondStateFor(rc.dbId,true));
-      if(add<=0)continue;
-      const r=bondAdvance(a.level,a.exp,add);a.level=r.level;a.exp=r.exp;if(a.level>=BOND_MAX_LEVEL)a.gifts=0;charChanged=true;
-      if(doDeduct)bondDeductDay(a);
-    }
-    if(charChanged)changed=true;
-  }
-  affinityRealizedDay=today;saveData();
-  if(doRender&&changed){renderRoster();if(activeDetailId&&document.getElementById('detail-overlay').classList.contains('open'))renderBondSection();}
-}
-function bondSetLevel(v){const a=getAffinity(activeDetailId);a.level=Math.max(0,Math.min(parseInt(v)||0,BOND_MAX_LEVEL));a.exp=a.level<BOND_MAX_LEVEL?Math.min(a.exp,BOND_NEEDED[a.level]):0;if(a.level<BOND_DATE_GATE_LEVEL)a.dating=false;if(a.level>=BOND_MAX_LEVEL)a.gifts=0;bondAfterChange();}
-function bondSetExp(v){const a=getAffinity(activeDetailId);const r=bondApplyManualExp(a.level,parseInt(v)||0);a.level=r.level;a.exp=r.exp;if(a.level<BOND_DATE_GATE_LEVEL)a.dating=false;if(a.level>=BOND_MAX_LEVEL)a.gifts=0;bondAfterChange();}
-function bondAddItem(){const a=getAffinity(activeDetailId);a.items.push({name:'New gift',fons:0,bond:200,owned:0});a.activeItem=a.items.length-1;bondAfterChange();}
-function bondEditItem(idx,field,val){const a=getAffinity(activeDetailId);if(!a.items[idx])return;if(field==='name')a.items[idx].name=val;else a.items[idx][field]=Math.max(0,parseInt(val)||0);bondAfterChange();}
-function bondToggleItem(idx){const a=getAffinity(activeDetailId);if(a.activeItem===idx){a.activeItem=-1;a.gifts=0;}else{a.activeItem=idx;if((a.gifts|0)<=0){const rc=roster.find(c=>c.dbId===activeDetailId);const active=rc&&rc.status==='active';if(!active||bondActiveGiftTotal()<BOND_GLOBAL_GIFT_CAP)a.gifts=1;}}bondAfterChange();}
-function bondDelItem(idx){const a=getAffinity(activeDetailId);a.items.splice(idx,1);if(a.activeItem===idx){a.activeItem=-1;a.gifts=0;}else if(a.activeItem>idx)a.activeItem--;bondAfterChange();}
-function bondGiftDelta(d){
-  const a=getAffinity(activeDetailId);const rc=roster.find(c=>c.dbId===activeDetailId);const active=rc&&rc.status==='active';
-  const hasItem=a.activeItem>=0&&a.items[a.activeItem];
-  if(d>0){if(!hasItem||a.level>=BOND_MAX_LEVEL||a.gifts>=BOND_GIFT_CAP)return;if(active&&bondActiveGiftTotal()>=BOND_GLOBAL_GIFT_CAP)return;a.gifts++;}
-  else{if(a.gifts<=0)return;a.gifts--;}
-  bondAfterChange();
-}
-function bondDeductDay(a){
-  const g=Math.max(0,a.gifts|0);
-  if(g<=0)return;
-  const it=(a.activeItem>=0&&Array.isArray(a.items))?a.items[a.activeItem]:null;
-  if(!it)return;
-  const owned=Math.max(0,it.owned|0);
-  const fromStock=Math.min(owned,g);
-  it.owned=owned-fromStock;
-  const shortfall=g-fromStock;
-  if(shortfall>0){const cost=shortfall*Math.max(0,it.fons|0);if(cost>0)adjustInv('Fons',-cost);}
-}
-function bondManualGift(){
-  const dbId=activeDetailId;const a=getAffinity(dbId);
-  if(a.level>=BOND_MAX_LEVEL)return;
-  const add=bondDayExp(bondStateFor(dbId,true));
-  if(add>0){
-    const r=bondAdvance(a.level,a.exp,add);a.level=r.level;a.exp=r.exp;if(a.level>=BOND_MAX_LEVEL)a.gifts=0;
-    bondDeductDay(a);
-  }
-  bondAfterChange();
-}
-function bondToggleAuto(which){
-  const a=getAffinity(activeDetailId);
-  if(which==='consume')a.autoConsume=!(a.autoConsume!==false);
-  else{if(a.autoConsume===false)return;a.autoDeduct=!(a.autoDeduct!==false);}
-  bondAfterChange();
-}
-function bondToggleDate(){
-  const a=getAffinity(activeDetailId);
-  if(a.level<BOND_DATE_GATE_LEVEL&&!a.dating)return;
-  if(!a.dating){const holder=bondDateHolder();if(holder&&holder!==activeDetailId){const h=affinityState[holder];if(h)h.dating=false;}a.dating=true;}
-  else a.dating=false;
-  bondAfterChange();
-}
-function renderBondSection(){
-  const host=document.getElementById('bond-section');if(!host)return;
-  const dbId=activeDetailId;if(!dbId){host.innerHTML='';return;}
-  const rc=roster.find(c=>c.dbId===dbId);
-  const a=getAffinity(dbId);
-  const active=!!(rc&&rc.status==='active');
-  const MAX=BOND_MAX_LEVEL;
-  const hasItem=a.activeItem>=0&&a.items[a.activeItem];
-  const proj=bondProject(bondStateFor(dbId,active));
-  const globalGifts=bondActiveGiftTotal();
-  const atGlobal=active&&globalGifts>=BOND_GLOBAL_GIFT_CAP;
-  const holder=bondDateHolder();
-  const gated=a.level<BOND_DATE_GATE_LEVEL;
-  const lvNeed=a.level<MAX?BOND_NEEDED[a.level]:0;
-  let lvlOpts='';
-  for(let i=0;i<=MAX;i++){lvlOpts+=`<option value="${i}" ${a.level===i?'selected':''}>Lv ${i}</option>`;}
-  let rows='';
-  a.items.forEach((it,idx)=>{
-    const nm=(it.name||'').replace(/"/g,'&quot;');
-    const locRow=it.location?`<tr class="bond-item-loc-row"><td colspan="6"><div class="bond-item-loc">${bgEsc(it.location)}</div></td></tr>`:'';
-    rows+=`<tr class="bond-item-row"><td><input type="text" value="${nm}" onchange="bondEditItem(${idx},'name',this.value)"></td>`+
-      `<td><input type="number" min="0" value="${it.fons||0}" onchange="bondEditItem(${idx},'fons',this.value)"></td>`+
-      `<td><input type="number" min="0" value="${it.bond||0}" onchange="bondEditItem(${idx},'bond',this.value)"></td>`+
-      `<td><input type="number" min="0" value="${it.owned||0}" onchange="bondEditItem(${idx},'owned',this.value)"></td>`+
-      `<td><button class="bond-actbtn ${idx===a.activeItem?'on':''}" onclick="bondToggleItem(${idx})">${idx===a.activeItem?'Active':'Set Active'}</button></td>`+
-      `<td><button class="bond-del" onclick="bondDelItem(${idx})" title="Remove">×</button></td></tr>${locRow}`;
-  });
-  if(!a.items.length)rows=`<tr><td colspan="6" class="bond-hint">No gift items yet - add one to plan gifting.</td></tr>`;
-  let dateMsg='';
-  if(gated&&!a.dating)dateMsg=`<span class="bond-hint">Dating unlocks at bond level ${BOND_DATE_GATE_LEVEL}.</span>`;
-  else if(!a.dating&&holder&&holder!==dbId){const dn=(CHARACTER_DB.find(c=>c.id===holder)||{}).name||'another character';dateMsg=`<span class="bond-warn">Overwrites your date with ${dn}.</span>`;}
-  const zCap=(typeof bondZeroCap==='function')?bondZeroCap(zeroGiftRank()):-1;
-  const inLvl=Math.min(a.exp,lvNeed||1);
-  const havePct=lvNeed?Math.min(100,inLvl/lvNeed*100):100;
-  const planPct=active&&lvNeed?Math.min(100-havePct,proj.planToday/lvNeed*100):0;
-  let overcapMsg='';
-  if(a.level>=MAX)overcapMsg='<span class="bond-hint">Bond maxed - gifting disabled.</span>';
-  else{
-    const s=bondTodaySurplus(bondStateFor(dbId,active));
-    if(s.warn)overcapMsg=(s.kind==='dateAlone')?'<span class="bond-warn">The date alone reaches Lv 10 today.</span>':`<span class="bond-warn">Only ${s.needG} of ${s.planned} gifts needed to reach Lv 10${s.dateNeeded?' (plus the date)':''}.</span>`;
-  }
-  host.innerHTML=`<div class="bond-sec"><div class="bond-hdr"><h3>Bond</h3><div class="bond-toggle ${a.dating?'on':''} ${(gated&&!a.dating)?'disabled':''}" onclick="bondToggleDate()"><span class="sw"></span><span>Date This Character</span></div>${dateMsg}</div>`+
-    `<div class="bond-row">`+
-      `<div class="bond-fld"><label>Current Bond Level</label><select onchange="bondSetLevel(this.value)">${lvlOpts}</select></div>`+
-      `<div class="bond-fld"><label>Exp In Level</label><input type="number" min="0" ${a.level>=MAX?'disabled':''} value="${a.exp||0}" oninput="bondExpLive(this.value)" onchange="bondSetExp(this.value)"></div>`+
-      `<div class="bond-fld"><label>Gifts Per Day</label><div style="display:flex;align-items:center;gap:8px;height:38px">`+
-        `<span class="bond-stepper"${(a.level>=MAX)?' title="Bond is maxed"':(!hasItem?' title="Set a gift active to enable gifting"':'')}><button onclick="bondGiftDelta(-1)" ${a.gifts<=0?'disabled':''}>&minus;</button><span class="v">${a.gifts|0}</span><button onclick="bondGiftDelta(1)" ${(!hasItem||a.level>=MAX||a.gifts>=BOND_GIFT_CAP||atGlobal)?'disabled':''}>+</button></span>`+
-        `<span class="bond-pill ${globalGifts>=BOND_GLOBAL_GIFT_CAP?'cap':''}">${globalGifts}/${BOND_GLOBAL_GIFT_CAP} Across Roster</span>`+
-      `</div></div>`+
-    `</div>`+
-    `${overcapMsg?`<div style="margin:-6px 0 12px">${overcapMsg}</div>`:''}`+
-    `<table class="bond-items"><thead><tr><th>Gift Item</th><th>Fons</th><th>Bond</th><th>Owned</th><th></th><th></th></tr></thead><tbody>${rows}</tbody></table>`+
-    `<button class="bond-actbtn bond-add-item" onclick="bondAddItem()">+ Add Gift Item</button>`+
-    `<div class="bond-bar"><div class="have" style="width:${havePct}%"></div><div class="plan" style="left:${havePct}%;width:${planPct}%"></div></div>`+
-    `<div class="bond-barcap"><span class="bc-cur">Lv ${a.level}${a.level<MAX?` (${inLvl}/${lvNeed})`:' (max)'}</span><span class="bc-end">→ Lv ${proj.endLevel}${proj.endLevel<MAX?` (${proj.endExp}/${BOND_NEEDED[proj.endLevel]})`:' (max)'}</span><span class="bc-add">${proj.planToday>0?'+'+abbrevNum(proj.planToday)+' Today':''}</span></div>`+
-    `<div class="bond-reads">`+
-      `<div class="bond-read"><div class="k">Fons Needed</div><div class="v">${proj.feasible?abbrevNum(proj.fons):'—'}</div></div>`+
-      `<div class="bond-read"><div class="k">Bond Remaining</div><div class="v">${proj.remaining>0?abbrevNum(proj.remaining):'0'}</div></div>`+
-      `<div class="bond-read"><div class="k">Days To Max</div><div class="v">${proj.remaining<=0?'0':(proj.feasible?abbrevNum(proj.days):'—')}</div></div>`+
-      `<div class="bond-read"><div class="k">Est. Completion</div><div class="v">${bondCompletionStr(proj)}</div></div>`+
-    `</div>`+
-    `<div class="bond-autorow">`+
-      `<div class="bond-toggle auto ${a.autoConsume!==false?'on':''}" onclick="bondToggleAuto('consume')"><span class="sw"></span><span>Auto Consume (bank bond automatically each day)</span></div>`+
-      `<div class="bond-toggle auto ${a.autoDeduct!==false?'on':''} ${a.autoConsume===false?'disabled':''}" onclick="bondToggleAuto('deduct')"><span class="sw"></span><span>Auto Deduct Fons for gifts</span></div>`+
-    `</div>`+
-    `${a.autoConsume===false?`<div class="bond-manual-row"><button class="bond-actbtn" onclick="bondManualGift()">Apply One Day's Gifting</button></div>`:''}`+
-    `${zCap>=0?`<p class="bond-hint" style="margin-top:14px">Zero's gift boost is active (+5% bond) for characters at or below bond level ${zCap}.</p>`:''}`+
-    `</div>`;
-}
-
-// ── Modal open/close ──────────────────────────────────────────────────────
-function openCharacterDetail(dbId){
-  activeDetailId=dbId;
-  const dbChar=CHARACTER_DB.find(c=>c.id===dbId);
-  if(!dbChar)return;
-  const av=document.getElementById('modal-avatar');
-  av.innerHTML=charAvatar(dbChar.id,dbChar.name,dbChar.element);
-  av.className=`modal-avatar rank-${(dbChar.rank||'').toLowerCase()}`;
-  document.getElementById('modal-title').textContent=dbChar.name;
-  document.getElementById('char-meta').innerHTML=`
-    <span class="meta-pill">${dbChar.rank||'?'} Rank</span>
-    <span class="meta-pill">${elemIcon(dbChar.element,14)} ${dbChar.element||'?'}</span>
-  `;
-  renderBondSection();
-  document.getElementById('detail-overlay').classList.add('open');
-}
-function closeDetail(){document.getElementById('detail-overlay').classList.remove('open');activeDetailId=null;}
-
-// ── Fons Management (ported verbatim from NTEelie's renderFons) ──────────
+// ── Fons Management (ported from NTEelie's renderFons, with the roster-driven
+//    bond-gift block replaced by kind:'bond' rows inside fonsCustomRows) ──
 function renderFons(){
   const dateEl=document.getElementById('fons-target-date');
   if(dateEl&&fonsTargetDate)dateEl.value=fonsTargetDate;
@@ -837,27 +377,6 @@ function renderFons(){
 
   const currentFons=getInv('Fons');
 
-  function gatherBondGiftExpenses(){
-    const out=[];
-    for(const rc of orderedActiveRosterChars()){
-      const a=affinityState[rc.dbId]||{};
-      if((a.level||0)>=BOND_MAX_LEVEL)continue;
-      if(!a.items||a.activeItem<0||a.activeItem>=a.items.length)continue;
-      const it=a.items[a.activeItem];
-      if(!it||!(a.gifts>0))continue;
-      if(fonsDisabled['gift:'+rc.dbId])continue;
-      const proj=bondProject(bondStateFor(rc.dbId,true));
-      if(!proj.feasible&&proj.gifts===0)continue;
-      const giftsPerDay=a.gifts|0;
-      const owned=Math.max(0,it.owned||0);
-      const totalGiftsToMax=proj.gifts;
-      const giftsToBuy=Math.max(0,totalGiftsToMax-owned);
-      if(giftsToBuy<=0)continue;
-      const dbChar=CHARACTER_DB.find(c=>c.id===rc.dbId);
-      out.push({giftsPerDay,fonsPer:(it.fons||0),giftsToBuy,owned,name:(dbChar&&dbChar.name)||rc.dbId});
-    }
-    return out;
-  }
   function gatherOneTimeExpenses(){
     const out=[];
     for(const c of fonsCustomRows){
@@ -876,8 +395,7 @@ function renderFons(){
     const simSources=(typeof FONS_SOURCES!=='undefined'?FONS_SOURCES:[]).filter(s=>s.fpr!==0&&!fonsDisabled[s.id])
       .concat(fonsCustomRows.filter(c=>c.rec&&c.fpr!==0&&!fonsDisabled['__custom__'+c.id]).map(c=>({id:'__custom__'+c.id,name:c.name,fpr:c.fpr,rec:c.rec})));
     const oneTime=gatherOneTimeExpenses();
-    const gifts=gatherBondGiftExpenses().map(g=>({...g,remain:g.giftsToBuy}));
-    const hasPendingExpense=oneTime.some(e=>e<0)||gifts.length>0||simSources.some(s=>s.fpr<0);
+    const hasPendingExpense=oneTime.some(e=>e<0)||simSources.some(s=>s.fpr<0);
     let balance=currentFons;
     if(balance>=fonsTargetGoal&&!hasPendingExpense){
       goalDays=-1;
@@ -893,13 +411,6 @@ function renderFons(){
           for(const e of oneTime){
             balance+=e;
             if(e>0)goalSimIncome+=e; else goalSimExpend+=e;
-          }
-        }
-        for(const g of gifts){
-          if(g.remain>0){
-            const buyToday=Math.min(g.remain,g.giftsPerDay);
-            const cost=buyToday*g.fonsPer;
-            balance-=cost; goalSimExpend-=cost; g.remain-=buyToday;
           }
         }
         if(balance>=fonsTargetGoal)break;
@@ -949,60 +460,62 @@ function renderFons(){
   const tbody=document.getElementById('fons-table-body');
   if(!tbody)return;
   let grandTotal=0;
-  let fonsRowCountTotal=0,fonsRowCountActive=0;
   let rows=SOURCES.map(s=>{
     const enabled=!fonsDisabled[s.id];
     const rowTotal=enabled?s.runs*s.fpr:0;
     grandTotal+=rowTotal;
-    fonsRowCountTotal++;if(enabled)fonsRowCountActive++;
     const dc=enabled?'':'fons-row-disabled';
     const fprHtml=fmtSigned(s.fpr,false);
     const totalHtml=effectiveTarget?fmtSigned(rowTotal,false):'—';
     const chipHtml=fonsCadenceChipHtml(fonsCadenceBucket(s.rec));
     return `<tr class="${dc}" data-fons-id="${s.id}"><td><span class="fons-grip" draggable="true" data-fons-id="${s.id}" title="Drag to reorder">&#10247;</span><input type="checkbox" class="fons-cb" data-fons-toggle="${s.id}"${enabled?' checked':''}></td><td>${s.name}</td><td>${chipHtml}</td><td class="fons-runs">${s.runs}</td><td class="fons-per-run">${fprHtml}</td><td>${totalHtml}</td></tr>`;
   }).join('');
-  {
-    const active=orderedActiveRosterChars();
-    for(const rc of active){
-      const a=affinityState[rc.dbId]||{};
-      if((a.level||0)>=BOND_MAX_LEVEL)continue;
-      if(!a.items||a.activeItem<0||a.activeItem>=a.items.length)continue;
-      const it=a.items[a.activeItem];
-      if(!it||!(a.gifts>0))continue;
-      const st=bondStateFor(rc.dbId,true);
-      const proj=bondProject(st);
-      if(!proj.feasible&&proj.gifts===0)continue;
-      const giftsPerDay=a.gifts|0;
-      const fonsPerDay=(it.fons||0)*giftsPerDay;
-      const daysToMax=giftsPerDay>0?Math.ceil(proj.gifts/giftsPerDay):0;
-      const effectiveDays=effectiveTarget?fonsServiceSpan(now,effectiveTarget):0;
-      const runsRemaining=effectiveTarget?Math.min(effectiveDays,daysToMax):daysToMax;
-      const owned=Math.max(0,it.owned||0);
-      const giftsNeeded=runsRemaining*giftsPerDay;
-      const giftsStillToBuy=Math.max(0,giftsNeeded-owned);
-      if(giftsStillToBuy===0)continue;
-      const spend=-(giftsStillToBuy*(it.fons||0));
-      const toggleKey='gift:'+rc.dbId;
-      const enabled=!fonsDisabled[toggleKey];
-      if(enabled)grandTotal+=spend;
-      fonsRowCountTotal++;if(enabled)fonsRowCountActive++;
-      const dbChar=CHARACTER_DB.find(c=>c.id===rc.dbId);
-      const charName=(dbChar&&dbChar.name)||rc.dbId;
-      const giftWord=giftsPerDay===1?'Gift':'Gifts';
-      const runsStr=effectiveTarget?runsRemaining:'—';
-      const dc=enabled?'':'fons-row-disabled';
-      rows+=`<tr class="${dc} fons-bond-row" draggable="true" data-bond-id="${rc.dbId}"><td><div class="fons-custom-actions"><span class="fons-grip" aria-hidden="true" title="Drag to reorder">&#10247;</span><input type="checkbox" class="fons-cb" data-fons-toggle="${toggleKey}"${enabled?' checked':''}></div></td><td>${giftWord} for ${charName}</td><td>${fonsCadenceChipHtml('bond')}</td><td class="fons-runs">${runsStr}</td><td class="fons-per-run">${fmtSigned(-fonsPerDay,false)}</td><td>${fmtSigned(enabled?spend:0,!effectiveTarget)}</td></tr>`;
-    }
-  }
-  if(fonsCustomRows.length>0){
-    rows+=`<tr class="fons-tbl-subhdr"><td class="fons-subhdr-cell" colspan="6">Custom</td></tr>`;
-    for(const c of fonsCustomRows){
+
+  const bondCadRows=fonsCustomRows.filter(c=>c.kind==='bond');
+  const plainCustomRows=fonsCustomRows.filter(c=>c.kind!=='bond');
+
+  if(bondCadRows.length>0){
+    rows+=`<tr class="fons-tbl-subhdr"><td class="fons-subhdr-cell" colspan="6">Bond Gifts</td></tr>`;
+    for(const c of bondCadRows){
+      fonsRecomputeBondRow(c); // keep fpr in sync in case CHARACTER_DB/guide data changed since save
       const key='__custom__'+c.id;
       const enabled=!fonsDisabled[key];
       const cRuns=customRuns(c);
-      const cTotal=cRuns===null?(c.runs||1)*c.fpr:cRuns*c.fpr;
+      const cTotal=customTotal(c);
       if(enabled)grandTotal+=cTotal;
-      fonsRowCountTotal++;if(enabled)fonsRowCountActive++;
+      const dc=enabled?'':'fons-row-disabled';
+      const valHtml=effectiveTarget?fmtSigned(enabled?cTotal:0,false):'—';
+      const found=fonsBondLookup(c.characterId,c.tier);
+      const charOpts=(typeof CHARACTER_DB!=='undefined'?CHARACTER_DB:[]).map(ch=>`<option value="${ch.id}" ${ch.id===c.characterId?'selected':''}>${bgEsc(ch.name)}</option>`).join('');
+      const noteHtml=found
+        ? `<div class="fons-bondcad-note">${bgEsc(found.name)}${found.location?' · '+bgEsc(found.location):''}</div>`
+        : `<div class="fons-bondcad-note">No Bond Guide entry &mdash; Fons/gift: <input class="fons-bondcad-manual" type="number" min="0" value="${c.manualFons||''}" placeholder="e.g. 900" data-bond-id="${c.id}" data-bond-field="manual"></div>`;
+      rows+=`<tr class="${dc} fons-custom-row" draggable="true" data-custom-drag-id="${c.id}">
+        <td><div class="fons-custom-actions"><span class="fons-grip" aria-hidden="true" title="Drag to reorder">&#10247;</span><input type="checkbox" class="fons-cb" data-fons-toggle="${key}"${enabled?' checked':''}><button class="fons-del-btn" data-custom-del="${c.id}" title="Remove">✕</button></div></td>
+        <td>
+          <div class="fons-bondcad-controls">
+            <select class="fons-bondcad-sel" data-bond-field="character" data-bond-id="${c.id}">${charOpts}</select>
+            <select class="fons-bondcad-sel" data-bond-field="tier" data-bond-id="${c.id}"><option value="100" ${c.tier===100?'selected':''}>100 Bond</option><option value="200" ${c.tier===200?'selected':''}>200 Bond</option><option value="400" ${c.tier===400?'selected':''}>400 Bond</option></select>
+            <input class="fons-bondcad-num" type="number" min="0" step="1" value="${c.giftsPerDay||0}" title="Gifts per day" data-bond-field="giftsPerDay" data-bond-id="${c.id}">
+          </div>
+          ${noteHtml}
+        </td>
+        <td>${fonsCadenceChipHtml('bond')}</td>
+        <td class="fons-runs">${cRuns===null?'—':cRuns}</td>
+        <td class="fons-per-run">${fmtSigned(c.fpr,false)}</td>
+        <td>${valHtml}</td>
+      </tr>`;
+    }
+  }
+
+  if(plainCustomRows.length>0){
+    rows+=`<tr class="fons-tbl-subhdr"><td class="fons-subhdr-cell" colspan="6">Custom</td></tr>`;
+    for(const c of plainCustomRows){
+      const key='__custom__'+c.id;
+      const enabled=!fonsDisabled[key];
+      const cRuns=customRuns(c);
+      const cTotal=customTotal(c);
+      if(enabled)grandTotal+=cTotal;
       const dc=enabled?'':'fons-row-disabled';
       const valHtml=effectiveTarget?fmtSigned(enabled?cTotal:0,false):'—';
       const cadence=fonsCadenceBucket(c.rec);
@@ -1059,11 +572,10 @@ function renderFons(){
     for(const c of fonsCustomRows){
       if(!c.rec)continue;
       if(fonsDisabled['__custom__'+c.id])continue;
-      if(isOccurrence(resolveRec(c.rec,PATCH_ANCHOR,PATCH_LENGTH_DAYS),todayIdx))todayItems.push({name:c.name,amount:c.fpr});
-    }
-    for(const g of gatherBondGiftExpenses()){
-      const shortfall=Math.max(0,g.giftsPerDay-g.owned);
-      if(shortfall>0)todayItems.push({name:`Gifts for ${g.name}`,amount:-(shortfall*g.fonsPer)});
+      if(isOccurrence(resolveRec(c.rec,PATCH_ANCHOR,PATCH_LENGTH_DAYS),todayIdx)){
+        const label=c.kind==='bond'?`Gifts for ${((typeof CHARACTER_DB!=='undefined'?CHARACTER_DB:[]).find(ch=>ch.id===c.characterId)||{}).name||c.characterId}`:c.name;
+        todayItems.push({name:label,amount:c.fpr});
+      }
     }
     if(todayItems.length===0){
       todayWidgetEl.innerHTML=`<div class="fons-widget-title">Available Today</div><div class="fons-widget-note">Nothing scheduled today.</div>`;
@@ -1198,41 +710,20 @@ function renderFons(){
       saveData();renderFons();
     });
   });
-  tbody.querySelectorAll('[data-custom-del]').forEach(btn=>{
-    btn.addEventListener('click',()=>{fonsCustomRows=fonsCustomRows.filter(r=>r.id!==btn.dataset.customDel);saveData();renderFons();});
-  });
-  tbody.querySelectorAll('.fons-bond-row').forEach(item=>{
-    item.addEventListener('dragstart',e=>{
-      _bondDragId=item.dataset.bondId;
-      item.classList.add('dragging');
-      e.dataTransfer.effectAllowed='move';
-      try{e.dataTransfer.setData('text/plain',_bondDragId);}catch(_){}
-    });
-    item.addEventListener('dragend',()=>{
-      item.classList.remove('dragging');
-      tbody.querySelectorAll('.fons-bond-row').forEach(x=>x.classList.remove('drop-target'));
-      _bondDragId=null;
-    });
-    item.addEventListener('dragover',e=>{
-      e.preventDefault();
-      e.dataTransfer.dropEffect='move';
-      if(item.dataset.bondId!==_bondDragId){
-        tbody.querySelectorAll('.fons-bond-row').forEach(x=>x.classList.remove('drop-target'));
-        item.classList.add('drop-target');
-      }
-    });
-    item.addEventListener('dragleave',()=>{item.classList.remove('drop-target');});
-    item.addEventListener('drop',e=>{
-      e.preventDefault();
-      const targetId=item.dataset.bondId;
-      if(!_bondDragId||_bondDragId===targetId)return;
-      const current=[...tbody.querySelectorAll('.fons-bond-row')].map(el=>el.dataset.bondId);
-      const from=current.indexOf(_bondDragId),to=current.indexOf(targetId);
-      if(from<0||to<0)return;
-      current.splice(from,1);current.splice(to,0,_bondDragId);
-      bondFonsOrder=current;
+  tbody.querySelectorAll('[data-bond-id]').forEach(el=>{
+    el.addEventListener('change',()=>{
+      const c=fonsCustomRows.find(r=>r.id===el.dataset.bondId);if(!c)return;
+      const field=el.dataset.bondField;
+      if(field==='character')c.characterId=el.value;
+      if(field==='tier')c.tier=parseInt(el.value)||200;
+      if(field==='giftsPerDay')c.giftsPerDay=Math.max(0,parseInt(el.value)||0);
+      if(field==='manual')c.manualFons=Math.max(0,parseInt(el.value)||0);
+      fonsRecomputeBondRow(c);
       saveData();renderFons();
     });
+  });
+  tbody.querySelectorAll('[data-custom-del]').forEach(btn=>{
+    btn.addEventListener('click',()=>{fonsCustomRows=fonsCustomRows.filter(r=>r.id!==btn.dataset.customDel);saveData();renderFons();});
   });
   tbody.querySelectorAll('.fons-custom-row').forEach(item=>{
     item.addEventListener('dragstart',e=>{
@@ -1267,10 +758,6 @@ function renderFons(){
       saveData();renderFons();
     });
   });
-}
-function fonsAddCustom(){
-  fonsCustomRows.push({id:'c'+Date.now(),name:'New entry',fpr:0,runs:1});
-  saveData();renderFons();
 }
 
 // ── Bond Guide (ported verbatim) ──────────────────────────────────────────
@@ -1309,29 +796,21 @@ function switchPage(page){
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.toggle('active',n.dataset.page===page));
   if(page==='fons')renderFons();
   if(page==='bond-guide')renderBondGuide();
-  if(page==='characters')renderRoster();
 }
 
 // ── Save / load / export / import ─────────────────────────────────────────
 function getSaveData(){
-  return {roster,inventory,affinityState,affinityRealizedDay,zeroGiftRankManual,
-    fonsTargetDate,fonsDisabled,fonsMode,fonsTargetGoal,fonsCustomRows,fonsOrder,bondFonsOrder};
+  return {inventory,fonsTargetDate,fonsDisabled,fonsMode,fonsTargetGoal,fonsCustomRows,fonsOrder};
 }
 function applySaveData(d){
   if(!d||typeof d!=='object')return;
-  roster=Array.isArray(d.roster)?d.roster:[];
   inventory=d.inventory&&typeof d.inventory==='object'?d.inventory:{};
-  affinityState=d.affinityState&&typeof d.affinityState==='object'?d.affinityState:{};
-  affinityRealizedDay=typeof d.affinityRealizedDay==='number'?d.affinityRealizedDay:null;
-  zeroGiftRankManual=typeof d.zeroGiftRankManual==='number'?d.zeroGiftRankManual:0;
   fonsTargetDate=d.fonsTargetDate||'';
   fonsDisabled=d.fonsDisabled&&typeof d.fonsDisabled==='object'?d.fonsDisabled:{};
   fonsMode=d.fonsMode==='goal'?'goal':'date';
   fonsTargetGoal=typeof d.fonsTargetGoal==='number'?d.fonsTargetGoal:0;
   fonsCustomRows=Array.isArray(d.fonsCustomRows)?d.fonsCustomRows:[];
   fonsOrder=sanitizeFonsOrder(d.fonsOrder);
-  bondFonsOrder=Array.isArray(d.bondFonsOrder)?d.bondFonsOrder:[];
-  const sel=document.getElementById('zero-rank-sel');if(sel)sel.value=String(zeroGiftRankManual);
 }
 function saveData(){
   try{localStorage.setItem(SAVE_KEY,JSON.stringify(getSaveData()));showSaveIndicator();}catch(e){console.warn('Save failed:',e);}
@@ -1345,15 +824,8 @@ function showSaveIndicator(){const ind=document.getElementById('save-indicator')
 document.addEventListener('DOMContentLoaded',()=>{
   loadData();
   fonsOrder=sanitizeFonsOrder(fonsOrder);
-  const sel=document.getElementById('zero-rank-sel');
-  if(sel){sel.value=String(zeroGiftRankManual);sel.addEventListener('change',()=>{zeroGiftRankManual=parseInt(sel.value)||0;saveData();renderRoster();if(activeDetailId)renderBondSection();});}
 
   document.querySelectorAll('.nav-item').forEach(item=>item.addEventListener('click',()=>switchPage(item.dataset.page)));
-
-  document.getElementById('db-close').addEventListener('click',closeCharPicker);
-  document.getElementById('db-overlay').addEventListener('click',e=>{if(e.target===document.getElementById('db-overlay'))closeCharPicker();});
-  document.getElementById('db-search').addEventListener('input',renderCharPickerGrid);
-  document.getElementById('detail-overlay').addEventListener('click',e=>{if(e.target===document.getElementById('detail-overlay'))closeDetail();});
 
   const dEl=document.getElementById('fons-target-date');
   if(dEl)dEl.addEventListener('change',()=>{fonsTargetDate=dEl.value;saveData();renderFons();});
@@ -1391,17 +863,15 @@ document.addEventListener('DOMContentLoaded',()=>{
     const file=e.target.files[0];if(!file)return;
     const reader=new FileReader();
     reader.onload=evt=>{
-      try{applySaveData(JSON.parse(evt.target.result));saveData();renderRoster();renderFons();renderBondGuide();}
+      try{applySaveData(JSON.parse(evt.target.result));saveData();renderFons();renderBondGuide();}
       catch(err){alert('Invalid save file.');}
     };
     reader.readAsText(file);e.target.value='';
   });
 
-  realizeBondDays(false);
-  renderRoster();
   renderFons();
   renderBondGuide();
-  switchPage('characters');
+  switchPage('fons');
 });
 </script>
 </body>
