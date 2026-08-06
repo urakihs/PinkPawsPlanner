@@ -856,9 +856,19 @@ function renderFons(){
       const haveFrac=fonsTargetGoal>0?currentFons/fonsTargetGoal:1;
       const pct=goalMet?100:Math.round(Math.max(0,Math.min(1,haveFrac))*100);
       const stillNeed=Math.max(0,fonsTargetGoal-currentFons);
+      const completionHtml=(()=>{
+        if(goalMet)return '<span style="color:var(--success,#4be89a)">Goal met</span>';
+        if(!effectiveTarget)return 'Beyond 999 days';
+        const dateLabel=new Date(effectiveTarget+'T00:00:00Z').toLocaleDateString('en-US',{year:'numeric',month:'short',day:'numeric',timeZone:'UTC'});
+        return `${dateLabel} <span style="color:var(--muted);font-weight:600">&middot; ${goalDays}d</span>`;
+      })();
       modeWidgetEl.innerHTML=`<div class="fons-widget-title">Goal Progress</div>
         <div class="fons-widget-ring-wrap">${fonsRingHtml(haveFrac,0,{id:'fons-goal-ring'})}<div class="fons-widget-ring-label-pct" id="fons-goal-pct">0%</div></div>
         <div class="fons-goal-frac">${fmt(currentFons)} <span>/ ${fmt(fonsTargetGoal)}</span></div>
+        <div class="fons-widget-still-need">
+          <div class="fons-widget-still-need-label">Estimated Completion</div>
+          <div class="fons-widget-still-need-val" style="color:var(--accent)">${completionHtml}</div>
+        </div>
         <div class="fons-widget-still-need">
           <div class="fons-widget-still-need-label">Still Need</div>
           <div class="fons-widget-still-need-val">${goalMet?'<span style="color:var(--success,#4be89a)">Goal met</span>':fmt(stillNeed)}</div>
