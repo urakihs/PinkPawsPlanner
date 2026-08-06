@@ -24,7 +24,7 @@ a { color: inherit; }
 .sidebar-logo { padding: 18px 16px; border-bottom: 1px solid var(--border); display: flex; flex-direction: column; align-items: center; gap: 10px; text-align: center; }
 .sidebar-logo-icon { width: 72px; height: 72px; border-radius: 50%; flex-shrink: 0; }
 .sidebar-logo h1 { text-align: center; }
-.sidebar-logo h1 { font-size: 22px; font-weight: 700; letter-spacing: 1px; color: var(--accent); line-height: 1.2; margin: 0; }
+.sidebar-logo h1 { font-size: 22px; font-weight: 700; letter-spacing: 1px; color: var(--accent); line-height: 1.2; margin: 0; text-transform: uppercase; }
 .sidebar-nav { flex: 1; padding: 10px 0; }
 .nav-item { display: flex; align-items: center; gap: 12px; padding: 14px 22px; font-size: 17px; color: var(--muted); cursor: pointer; transition: all .15s; border-left: 3px solid transparent; user-select: none; }
 .nav-item:hover { color: var(--text); background: var(--surface2); }
@@ -216,8 +216,8 @@ a { color: inherit; }
           <button type="button" class="fons-seg-btn" id="fons-seg-date" data-mode="date">Target Date</button>
           <button type="button" class="fons-seg-btn" id="fons-seg-goal" data-mode="goal">Target Fons</button>
         </div>
-        <input class="fons-date-input" type="date" id="fons-target-date">
         <div class="fons-days-left-chip" id="fons-days-left-chip"></div>
+        <input class="fons-date-input" type="date" id="fons-target-date">
         <div class="fons-chip-wrap" id="fons-target-goal-wrap">
           <span class="fons-chip-label">Target</span>
           <input class="fons-chip-val" id="fons-target-goal" type="text" placeholder="e.g. 100,000,000" inputmode="numeric">
