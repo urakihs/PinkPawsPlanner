@@ -150,6 +150,13 @@ a { color: inherit; }
 .bond-tracker-gift-btn:disabled { opacity: .4; cursor: not-allowed; border-color: var(--border); color: var(--muted); }
 .bond-tracker-maxed { font-size: 12px; color: var(--success); font-weight: 600; }
 .bond-tracker-add-row { display: flex; gap: 8px; align-items: center; margin-top: 12px; }
+.bond-tracker-toolbar { display: flex; gap: 12px; align-items: center; margin-bottom: 16px; }
+.bond-tracker-checkline { display: flex; align-items: flex-start; gap: 8px; font-size: 13px; color: var(--text); cursor: pointer; font-weight: 400; text-transform: none; letter-spacing: normal; }
+.bond-tracker-checkline input { accent-color: var(--accent); width: 15px; height: 15px; flex-shrink: 0; margin-top: 2px; }
+.bond-tracker-checkline-note { color: var(--muted); font-weight: 400; }
+.bond-tracker-dating-badge { display: inline-block; font-size: 10.5px; font-weight: 700; letter-spacing: .4px; text-transform: uppercase; color: var(--accent); background: rgba(232,184,75,.12); border: 1px solid rgba(232,184,75,.35); border-radius: 999px; padding: 2px 7px; margin-left: 6px; vertical-align: middle; }
+.bond-tracker-est { font-size: 13px; color: var(--text); }
+.bond-tracker-est span { color: var(--muted); }
 
 /* ── Edit modal (bond gift rows) ── */
 .fons-modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.55); display: flex; align-items: center; justify-content: center; z-index: 100; }
@@ -326,15 +333,59 @@ a { color: inherit; }
   <!-- Bond Tracker -->
   <div class="page" id="page-bond-tracker">
     <div class="page-header"><div class="page-title">Bond Tracker</div></div>
+    <div class="bond-tracker-toolbar">
+      <div class="fons-chip-wrap">
+        <span class="fons-chip-label">Zero's Life Skill</span>
+        <select class="fons-bondcad-sel" id="bond-tracker-zero-rank">
+          <option value="0">Not owned / Rank 0</option>
+          <option value="1">Rank 1</option>
+          <option value="2">Rank 2</option>
+          <option value="3">Rank 3</option>
+          <option value="4">Rank 4</option>
+          <option value="5">Rank 5</option>
+        </select>
+      </div>
+    </div>
+    <div class="fons-warn" id="bond-tracker-gift-warn" style="display:none"></div>
     <div class="fons-wide-wrap">
       <table class="fons-eff-tbl bond-tracker-tbl" id="bond-tracker-table">
-        <thead><tr><th style="text-align:left">Character</th><th style="text-align:left">Level</th><th style="text-align:left">Progress</th><th style="text-align:left">Log Gift</th><th></th></tr></thead>
+        <thead><tr><th style="text-align:left">Character</th><th style="text-align:left">Level</th><th style="text-align:left">Progress</th><th style="text-align:left">Bond Left</th><th style="text-align:left">Fons Left</th><th style="text-align:left">Est. Completion</th><th style="text-align:left">Log Gift</th><th></th></tr></thead>
         <tbody id="bond-tracker-body"></tbody>
       </table>
     </div>
     <div class="bond-tracker-add-row">
       <select class="fons-bondcad-sel" id="bond-tracker-add-sel"></select>
       <button class="fons-custom-add-btn" onclick="bondTrackerAddRow()">+ Add character</button>
+    </div>
+  </div>
+
+  <!-- Bond Tracker gifting-plan edit modal -->
+  <div class="fons-modal-overlay" id="bond-tracker-modal-overlay" hidden>
+    <div class="fons-modal">
+      <div class="fons-modal-title">Edit Gifting Plan</div>
+      <div class="fons-modal-field">
+        <label>Gift Tier</label>
+        <div class="fons-tier-options" id="bond-tracker-modal-tier-options"></div>
+      </div>
+      <div class="fons-modal-field">
+        <label for="bond-tracker-modal-gifts">Gifts / Day (max 3)</label>
+        <input id="bond-tracker-modal-gifts" type="number" min="0" max="3">
+      </div>
+      <div class="fons-modal-note" id="bond-tracker-modal-item-note"></div>
+      <div class="fons-modal-field">
+        <label for="bond-tracker-modal-owned" id="bond-tracker-modal-owned-label">Owned</label>
+        <input id="bond-tracker-modal-owned" type="number" min="0">
+      </div>
+      <div class="fons-modal-field">
+        <label class="bond-tracker-checkline"><input type="checkbox" id="bond-tracker-modal-dating"> Date this character today <span class="bond-tracker-checkline-note">(free +200 bond/day; only one character roster-wide, unlocks at Lv 4)</span></label>
+      </div>
+      <div class="fons-modal-field">
+        <label class="bond-tracker-checkline"><input type="checkbox" id="bond-tracker-modal-autodeduct"> Auto-deduct Fons/inventory at daily reset</label>
+      </div>
+      <div class="fons-modal-actions">
+        <button type="button" class="fons-modal-btn" id="bond-tracker-modal-cancel">Cancel</button>
+        <button type="button" class="fons-modal-btn primary" id="bond-tracker-modal-save">Save</button>
+      </div>
     </div>
   </div>
 
@@ -365,7 +416,7 @@ a { color: inherit; }
  *  flows through the exact same recurring-row math as any other custom entry.
  * ==========================================================================*/
 
-const SAVE_KEY = 'pink-paws-planner-v3';
+const SAVE_KEY = 'pink-paws-planner-v4';
 
 // ── State ──────────────────────────────────────────────────────────────────
 let inventory = {};           // { Fons: n }
@@ -374,9 +425,22 @@ let fonsDisabled = {};
 let fonsMode = 'date';        // 'date' | 'goal'
 let fonsTargetGoal = 0;
 let fonsCustomRows = [];      // [{id, kind:'bond'|undefined, ...}] -- see fonsAddBondRow/fonsAddCustom
-let bondTracker = []; // [{characterId, level, exp}] -- one entry per tracked character.
-                       // level: 0-10 (BOND_MAX_LEVEL). exp: exp banked within `level`,
-                       // 0 <= exp < BOND_NEEDED[level] (0 when level is maxed).
+let bondTracker = []; // [{characterId, level, exp, tier, giftsPerDay, dating, autoDeduct}] -- one
+                       // entry per tracked character. level: 0-10 (BOND_MAX_LEVEL). exp: exp banked
+                       // within `level`, 0 <= exp < BOND_NEEDED[level] (0 when level is maxed).
+                       // tier: 200|400, the gift currently being fed to them (Bond Guide's cheapest
+                       // item at that tier). giftsPerDay: 0-3 (BOND_GIFT_CAP). dating: true for at
+                       // most ONE row roster-wide (BOND_DAILY_DATE_CAP=1) -- see bondTrackerSetDating.
+                       // autoDeduct: whether the reset catch-up also consumes owned stock/Fons for
+                       // this character, or just banks bond progress and leaves inventory alone.
+let bondItemInventory = {}; // { [shopItemId]: ownedCount } -- shared stock; several characters can
+                             // point at the same gift item (e.g. "Promise"), so this is keyed by
+                             // item, not by character.
+let zeroLifeSkillRank = 0;  // 0-5. Zero has no bond meter of his own (not in CHARACTER_DB), but his
+                             // Life Skill is a roster-wide passive -- see bondZeroCap/bondEffGiftBond.
+let bondLastProcessedDay = null; // service-day index (serviceDayIndex) bond catch-up has processed
+                                  // through; null = never run yet (first load just watermarks "now"
+                                  // rather than retroactively simulating from account creation).
 let fonsSourceOverrides = {}; // { [FONS_SOURCES id]: editedFpr } -- only Fons/Run is editable, cadence is fixed by the game
 const DEFAULT_FONS_ORDER = (typeof FONS_SOURCES !== 'undefined' ? FONS_SOURCES : []).map(s => s.id);
 let fonsOrder = DEFAULT_FONS_ORDER.slice();
@@ -587,7 +651,7 @@ function fonsBondLookup(characterId, tier){
   const guide=(typeof BOND_GUIDE_DB!=='undefined')?BOND_GUIDE_DB.find(g=>g.characterId===characterId):null;
   const itemId = tier===200 ? (guide&&guide.item200Id) : tier===400 ? (guide&&guide.item400Id) : null;
   const item = itemId && typeof SHOP_ITEM_DB!=='undefined' ? SHOP_ITEM_DB.find(i=>i.id===itemId) : null;
-  return item ? {name:item.name, location:item.location||'', costPerUnit:item.costPerUnit||0} : null;
+  return item ? {id:itemId, name:item.name, location:item.location||'', costPerUnit:item.costPerUnit||0} : null;
 }
 function fonsBondCostPerUnit(c){
   const found=fonsBondLookup(c.characterId,c.tier);
@@ -599,6 +663,17 @@ function fonsBondCostPerUnit(c){
 // regardless of how far out the target date/goal is.
 function fonsBondMaxGifts(tier){
   return Math.ceil(BOND_CUM[BOND_MAX_LEVEL]/tier);
+}
+// Same cap, but aware of Bond Tracker: if this character is already being
+// tracked there, use their real remaining exp instead of assuming they're
+// starting from level 0 -- otherwise a character who's already level 8 gets
+// massively overcharged in the Fons Management projection.
+function fonsBondMaxGiftsFor(characterId, tier){
+  const tracked=(typeof bondTracker!=='undefined'?bondTracker:[]).find(r=>r.characterId===characterId);
+  const remaining=tracked
+    ? Math.max(0,BOND_CUM[BOND_MAX_LEVEL]-bondCurrentCum(tracked.level,tracked.exp))
+    : BOND_CUM[BOND_MAX_LEVEL];
+  return Math.ceil(remaining/tier);
 }
 // Recomputes a bond row's derived Fons/day cost (c.fpr) from its
 // character/tier/giftsPerDay, so every existing recurring-row total/Instances
@@ -735,7 +810,7 @@ function renderFons(){
     const simSources=fonsEffectiveSources().filter(s=>s.fpr!==0&&!fonsDisabled[s.id])
       .concat(fonsCustomRows.filter(c=>c.rec&&c.fpr!==0&&!fonsDisabled['__custom__'+c.id]).map(c=>{
         if(c.kind==='bond'){
-          const bondCap=fonsBondMaxGifts(c.tier)*fonsBondCostPerUnit(c);
+          const bondCap=fonsBondMaxGiftsFor(c.characterId,c.tier)*fonsBondCostPerUnit(c);
           return {id:'__custom__'+c.id,name:c.name,fpr:c.fpr,rec:c.rec,bondCap,bondSpent:0};
         }
         return {id:'__custom__'+c.id,name:c.name,fpr:c.fpr,rec:c.rec};
@@ -837,7 +912,7 @@ function renderFons(){
       const enabled=!fonsDisabled[key];
       const rawRuns=customRuns(c);
       const bondCostPerUnit=fonsBondCostPerUnit(c);
-      const bondMaxGifts=fonsBondMaxGifts(c.tier);
+      const bondMaxGifts=fonsBondMaxGiftsFor(c.characterId,c.tier);
       const bondPerDay=Math.max(0,c.giftsPerDay|0);
       const cRuns=bondPerDay>0?Math.min(rawRuns,Math.ceil(bondMaxGifts/bondPerDay)):rawRuns;
       const cTotal=-(Math.min(rawRuns*bondPerDay,bondMaxGifts)*bondCostPerUnit);
@@ -1166,15 +1241,25 @@ function renderBondGuide(){
 }
 
 // ── Bond Tracker ───────────────────────────────────────────────────────────
+let bondTrackerEditingId = null; // characterId currently open in the gifting-plan modal, or null
+
 function bondTrackerAvailableChars(){
   const used = new Set(bondTracker.map(r => r.characterId));
   return (typeof CHARACTER_DB !== 'undefined' ? CHARACTER_DB : []).filter(c => !used.has(c.id));
+}
+// Picks whichever tier is cheaper per bond point for this character (the general rule is
+// 200 is cheaper-per-bond but slower; a few characters, e.g. Daffodill, are the reverse --
+// this is computed from real cost data so it's correct either way, no hardcoded exceptions).
+function bondTrackerDefaultTier(characterId){
+  const i200=fonsBondLookup(characterId,200), i400=fonsBondLookup(characterId,400);
+  if(!i200)return 400; if(!i400)return 200;
+  return (i200.costPerUnit/200)<=(i400.costPerUnit/400)?200:400;
 }
 function bondTrackerAddRow(){
   const sel = document.getElementById('bond-tracker-add-sel');
   const characterId = sel && sel.value;
   if (!characterId || bondTracker.some(r => r.characterId === characterId)) return;
-  bondTracker.push({ characterId, level: 0, exp: 0 });
+  bondTracker.push({ characterId, level: 0, exp: 0, tier: bondTrackerDefaultTier(characterId), giftsPerDay: 0, dating: false, autoDeduct: false });
   saveData(); renderBondTracker();
 }
 function bondTrackerRemove(characterId){
@@ -1185,25 +1270,179 @@ function bondTrackerSetLevel(characterId, v){
   const row = bondTracker.find(r => r.characterId === characterId); if (!row) return;
   row.level = Math.max(0, Math.min(parseInt(v) || 0, BOND_MAX_LEVEL));
   row.exp = row.level < BOND_MAX_LEVEL ? Math.min(row.exp, BOND_NEEDED[row.level]) : 0;
+  if (row.level < BOND_DATE_GATE_LEVEL) row.dating = false;
   saveData(); renderBondTracker();
 }
 function bondTrackerSetExp(characterId, v){
   const row = bondTracker.find(r => r.characterId === characterId); if (!row) return;
   const r = bondApplyManualExp(row.level, parseInt(v) || 0);
   row.level = r.level; row.exp = r.exp;
+  if (row.level < BOND_DATE_GATE_LEVEL) row.dating = false;
   saveData(); renderBondTracker();
+}
+// Consumes one gift of `tier` for `characterId` from the shared item-inventory bucket,
+// falling back to spending Fons once stock runs out. Used by both the manual "Log Gift"
+// buttons and the reset catch-up simulation, so the two can never disagree about cost.
+function bondTrackerConsumeGift(characterId, tier){
+  const item = fonsBondLookup(characterId, tier);
+  if (!item) return;
+  const owned = bondItemInventory[item.id] || 0;
+  if (owned > 0) bondItemInventory[item.id] = owned - 1;
+  else adjustInv('Fons', -item.costPerUnit);
 }
 function bondTrackerLogGift(characterId, tier){
   const row = bondTracker.find(r => r.characterId === characterId); if (!row) return;
   if (row.level >= BOND_MAX_LEVEL) return;
-  const r = bondAdvance(row.level, row.exp, tier);
+  const eff = bondEffGiftBond(tier, row.level, zeroLifeSkillRank);
+  const r = bondAdvance(row.level, row.exp, eff);
   row.level = r.level; row.exp = r.exp;
+  bondTrackerConsumeGift(characterId, tier);
   saveData(); renderBondTracker();
 }
+function bondTrackerRemainingExp(row){
+  return Math.max(0, BOND_CUM[BOND_MAX_LEVEL] - bondCurrentCum(row.level, row.exp));
+}
+// Dry-run projection (does not mutate state): simulates this row's current gifting/dating
+// plan forward day-by-day to Level 10. Mirrors bondTrackerProcessCatchup's per-gift/per-day
+// logic exactly, just against local copies instead of the real row/inventory.
+function bondTrackerProject(row){
+  if (row.level >= BOND_MAX_LEVEL) return { feasible:true, maxed:true, days:0, fonsNeeded:0 };
+  const hasPlan = (row.giftsPerDay|0) > 0 || row.dating;
+  if (!hasPlan) return { feasible:false, maxed:false };
+  const item = fonsBondLookup(row.characterId, row.tier);
+  const costPerUnit = item ? item.costPerUnit : 0;
+  let owned = item ? (bondItemInventory[item.id] || 0) : 0;
+  let level=row.level, exp=row.exp, fonsNeeded=0, days=0;
+  const CAP=999;
+  while (level < BOND_MAX_LEVEL && days < CAP){
+    days++;
+    for (let g=0; g<(row.giftsPerDay|0) && level<BOND_MAX_LEVEL; g++){
+      const eff=bondEffGiftBond(row.tier,level,zeroLifeSkillRank);
+      const r=bondAdvance(level,exp,eff); level=r.level; exp=r.exp;
+      if (owned>0) owned--; else fonsNeeded+=costPerUnit;
+    }
+    if (row.dating && level<BOND_MAX_LEVEL && level>=BOND_DATE_GATE_LEVEL){
+      const r=bondAdvance(level,exp,BOND_DATE_BOND); level=r.level; exp=r.exp;
+    }
+  }
+  if (level<BOND_MAX_LEVEL) return { feasible:false, maxed:false }; // e.g. dating-only, stuck below the Lv4 gate
+  return { feasible:true, maxed:false, days, fonsNeeded };
+}
+// Advances every tracked character's bond by one service-day's worth of their current
+// plan. Called for each reset boundary that passed since the last time the app was open,
+// so re-opening the app after several days catches up all of them in one pass.
+function bondTrackerProcessCatchup(){
+  const today = serviceDayIndex(activityNow());
+  if (bondLastProcessedDay === null){ bondLastProcessedDay = today; return; }
+  if (bondLastProcessedDay >= today) return;
+  while (bondLastProcessedDay < today){
+    bondLastProcessedDay++;
+    for (const row of bondTracker){
+      if (row.level >= BOND_MAX_LEVEL) continue;
+      for (let g=0; g<(row.giftsPerDay|0) && row.level<BOND_MAX_LEVEL; g++){
+        const eff=bondEffGiftBond(row.tier,row.level,zeroLifeSkillRank);
+        const r=bondAdvance(row.level,row.exp,eff); row.level=r.level; row.exp=r.exp;
+        if (row.autoDeduct) bondTrackerConsumeGift(row.characterId, row.tier);
+      }
+      if (row.dating && row.level<BOND_MAX_LEVEL && row.level>=BOND_DATE_GATE_LEVEL){
+        const r=bondAdvance(row.level,row.exp,BOND_DATE_BOND); row.level=r.level; row.exp=r.exp;
+      }
+    }
+  }
+  saveData();
+}
+
+// ── Gifting-plan edit modal ──────────────────────────────────────────────
+function bondTrackerModalRow(){ return bondTracker.find(r => r.characterId === bondTrackerEditingId); }
+function bondTrackerGetModalTier(){
+  const checked=document.querySelector('#bond-tracker-modal-tier-options input[type="radio"]:checked');
+  return checked?parseInt(checked.value):200;
+}
+function bondTrackerUpdateModalTierOptions(selectedTier){
+  const row=bondTrackerModalRow(); if(!row)return;
+  const wrap=document.getElementById('bond-tracker-modal-tier-options'); if(!wrap)return;
+  const cur=selectedTier!=null?String(selectedTier):bondTrackerGetModalTier();
+  wrap.innerHTML=[200,400].map(t=>{
+    const id='bond-tracker-modal-tier-'+t;
+    const checked=String(t)===cur;
+    return `<label class="fons-tier-option" for="${id}"><input type="radio" name="bond-tracker-modal-tier" id="${id}" value="${t}"${checked?' checked':''}><span class="fons-tier-option-label">${bgEsc(fonsBondModalTierLabel(row.characterId,t))}</span></label>`;
+  }).join('');
+}
+function bondTrackerUpdateModalItemNote(){
+  const row=bondTrackerModalRow(); if(!row)return;
+  const item=fonsBondLookup(row.characterId,bondTrackerGetModalTier());
+  const noteEl=document.getElementById('bond-tracker-modal-item-note');
+  const ownedLabel=document.getElementById('bond-tracker-modal-owned-label');
+  const ownedInput=document.getElementById('bond-tracker-modal-owned');
+  if(item){
+    noteEl.textContent=item.location?`Location: ${item.location}`:'';
+    ownedLabel.textContent=`${item.name} in stock`;
+    ownedInput.value=bondItemInventory[item.id]||0;
+  } else {
+    noteEl.textContent='';
+    ownedLabel.textContent='Owned';
+    ownedInput.value=0;
+  }
+}
+function bondTrackerOpenModal(characterId){
+  const row=bondTracker.find(r=>r.characterId===characterId); if(!row)return;
+  bondTrackerEditingId=characterId;
+  bondTrackerUpdateModalTierOptions(row.tier);
+  const giftsEl=document.getElementById('bond-tracker-modal-gifts');
+  if(giftsEl)giftsEl.value=row.giftsPerDay||0;
+  const datingEl=document.getElementById('bond-tracker-modal-dating');
+  if(datingEl){ datingEl.checked=!!row.dating; datingEl.disabled=row.level<BOND_DATE_GATE_LEVEL; }
+  const autoEl=document.getElementById('bond-tracker-modal-autodeduct');
+  if(autoEl)autoEl.checked=!!row.autoDeduct;
+  bondTrackerUpdateModalItemNote();
+  const overlay=document.getElementById('bond-tracker-modal-overlay');
+  if(overlay)overlay.hidden=false;
+}
+function bondTrackerCloseModal(){
+  bondTrackerEditingId=null;
+  const overlay=document.getElementById('bond-tracker-modal-overlay');
+  if(overlay)overlay.hidden=true;
+}
+function bondTrackerSaveModal(){
+  const row=bondTrackerModalRow(); if(!row)return;
+  const newTier=bondTrackerGetModalTier();
+  const item=fonsBondLookup(row.characterId,newTier);
+  row.tier=newTier;
+  row.giftsPerDay=Math.max(0,Math.min(BOND_GIFT_CAP,parseInt(document.getElementById('bond-tracker-modal-gifts').value)||0));
+  const datingChecked=document.getElementById('bond-tracker-modal-dating').checked;
+  if(datingChecked && row.level>=BOND_DATE_GATE_LEVEL){
+    bondTracker.forEach(r=>{ r.dating=(r.characterId===row.characterId); });
+  } else {
+    row.dating=false;
+  }
+  row.autoDeduct=document.getElementById('bond-tracker-modal-autodeduct').checked;
+  if(item){
+    const ownedVal=Math.max(0,parseInt(document.getElementById('bond-tracker-modal-owned').value)||0);
+    bondItemInventory[item.id]=ownedVal;
+  }
+  bondTrackerCloseModal();
+  saveData(); renderBondTracker();
+}
+
 function renderBondTracker(){
+  bondTrackerProcessCatchup();
   const body = document.getElementById('bond-tracker-body');
   const addSel = document.getElementById('bond-tracker-add-sel');
   if (!body || !addSel) return;
+
+  const zeroSel=document.getElementById('bond-tracker-zero-rank');
+  if(zeroSel && document.activeElement!==zeroSel) zeroSel.value=String(zeroLifeSkillRank);
+
+  const totalGiftsPerDay = bondTracker.reduce((t,r)=>t+(r.giftsPerDay|0),0);
+  const warnEl=document.getElementById('bond-tracker-gift-warn');
+  if(warnEl){
+    if(totalGiftsPerDay>BOND_GLOBAL_GIFT_CAP){
+      warnEl.style.display='';
+      warnEl.textContent=`You've planned ${totalGiftsPerDay} gifts/day across your roster — only ${BOND_GLOBAL_GIFT_CAP}/day actually go through in-game (the shared roster-wide cap).`;
+    } else {
+      warnEl.style.display='none';
+    }
+  }
 
   const available = bondTrackerAvailableChars();
   addSel.innerHTML = available.length
@@ -1212,7 +1451,7 @@ function renderBondTracker(){
   addSel.disabled = !available.length;
 
   if (!bondTracker.length) {
-    body.innerHTML = `<tr><td colspan="5" class="fons-tbl-note" style="padding:20px 16px">No characters tracked yet — pick one below and add it.</td></tr>`;
+    body.innerHTML = `<tr><td colspan="8" class="fons-tbl-note" style="padding:20px 16px">No characters tracked yet — pick one below and add it.</td></tr>`;
     return;
   }
 
@@ -1230,19 +1469,34 @@ function renderBondTracker(){
     const pct = maxed ? 100 : Math.min(100, needed ? (row.exp / needed) * 100 : 0);
     let lvlOpts = '';
     for (let i = 0; i <= BOND_MAX_LEVEL; i++) lvlOpts += `<option value="${i}" ${row.level === i ? 'selected' : ''}>Lv ${i}</option>`;
+
+    const bondLeft = maxed ? 0 : bondTrackerRemainingExp(row);
+    const proj = bondTrackerProject(row);
+    let fonsLeftHtml='—', completionHtml='—';
+    if(maxed){
+      fonsLeftHtml='0'; completionHtml='—';
+    } else if(proj.feasible){
+      fonsLeftHtml=fmtQty(proj.fonsNeeded);
+      const dateLabel=new Date(activityNow().getTime()+proj.days*86400000).toLocaleDateString('en-US',{year:'numeric',month:'short',day:'numeric'});
+      completionHtml=`<div class="bond-tracker-est">${dateLabel} <span>&middot; ${proj.days}d</span></div>`;
+    }
+
     return `<tr data-bt-char="${row.characterId}">
-      <td>${bgEsc(name)}</td>
+      <td>${bgEsc(name)}${row.dating?'<span class="bond-tracker-dating-badge">Dating</span>':''}</td>
       <td><select class="fons-bondcad-sel" data-bt-field="level" data-bt-char="${row.characterId}">${lvlOpts}</select></td>
       <td>
         <div class="bond-tracker-bar"><div class="have" style="width:${pct}%"></div></div>
         <div class="bond-tracker-bar-label">${maxed ? 'Maxed' : `<input class="fons-bondcad-num" style="width:64px" type="number" min="0" max="${needed}" value="${row.exp}" data-bt-field="exp" data-bt-char="${row.characterId}"> / ${needed}`}</div>
       </td>
+      <td>${fmtQty(bondLeft)}</td>
+      <td>${fonsLeftHtml}</td>
+      <td>${completionHtml}</td>
       <td>
         <button class="bond-tracker-gift-btn" data-bt-gift="${row.characterId}" data-tier="200" ${maxed ? 'disabled' : ''}>+200</button>
         <button class="bond-tracker-gift-btn" data-bt-gift="${row.characterId}" data-tier="400" ${maxed ? 'disabled' : ''}>+400</button>
         ${maxed ? '<span class="bond-tracker-maxed">&#10003; Maxed</span>' : ''}
       </td>
-      <td><button class="fons-del-btn" data-bt-del="${row.characterId}" title="Remove">&#10005;</button></td>
+      <td><button class="fons-edit-btn" data-bt-edit="${row.characterId}" title="Edit gifting plan">&#9998;</button> <button class="fons-del-btn" data-bt-del="${row.characterId}" title="Remove">&#10005;</button></td>
     </tr>`;
   }).join('');
 
@@ -1254,6 +1508,9 @@ function renderBondTracker(){
   });
   body.querySelectorAll('[data-bt-gift]').forEach(el => {
     el.addEventListener('click', () => bondTrackerLogGift(el.dataset.btGift, parseInt(el.dataset.tier)));
+  });
+  body.querySelectorAll('[data-bt-edit]').forEach(el => {
+    el.addEventListener('click', () => bondTrackerOpenModal(el.dataset.btEdit));
   });
   body.querySelectorAll('[data-bt-del]').forEach(el => {
     el.addEventListener('click', () => bondTrackerRemove(el.dataset.btDel));
@@ -1272,7 +1529,7 @@ function switchPage(page){
 
 // ── Save / load / export / import ─────────────────────────────────────────
 function getSaveData(){
-  return {inventory,fonsTargetDate,fonsDisabled,fonsMode,fonsTargetGoal,fonsCustomRows,fonsOrder,fonsSourceOverrides,bondTracker};
+  return {inventory,fonsTargetDate,fonsDisabled,fonsMode,fonsTargetGoal,fonsCustomRows,fonsOrder,fonsSourceOverrides,bondTracker,bondItemInventory,zeroLifeSkillRank,bondLastProcessedDay};
 }
 function applySaveData(d){
   if(!d||typeof d!=='object')return;
@@ -1285,6 +1542,9 @@ function applySaveData(d){
   fonsOrder=sanitizeFonsOrder(d.fonsOrder);
   fonsSourceOverrides=d.fonsSourceOverrides&&typeof d.fonsSourceOverrides==='object'?d.fonsSourceOverrides:{};
   bondTracker=Array.isArray(d.bondTracker)?d.bondTracker:[];
+  bondItemInventory=d.bondItemInventory&&typeof d.bondItemInventory==='object'?d.bondItemInventory:{};
+  zeroLifeSkillRank=Math.max(0,Math.min(parseInt(d.zeroLifeSkillRank)||0,5));
+  bondLastProcessedDay=typeof d.bondLastProcessedDay==='number'?d.bondLastProcessedDay:null;
 }
 function saveData(){
   try{localStorage.setItem(SAVE_KEY,JSON.stringify(getSaveData()));showSaveIndicator();}catch(e){console.warn('Save failed:',e);}
@@ -1340,6 +1600,19 @@ document.addEventListener('DOMContentLoaded',()=>{
   if(bondModalSave)bondModalSave.addEventListener('click',fonsSaveBondModal);
   if(bondModalOverlay)bondModalOverlay.addEventListener('click',e=>{if(e.target===bondModalOverlay)fonsCloseBondModal();});
   document.addEventListener('keydown',e=>{if(e.key==='Escape'&&bondModalOverlay&&!bondModalOverlay.hidden)fonsCloseBondModal();});
+
+  const zeroRankSel=document.getElementById('bond-tracker-zero-rank');
+  if(zeroRankSel)zeroRankSel.addEventListener('change',()=>{zeroLifeSkillRank=Math.max(0,Math.min(parseInt(zeroRankSel.value)||0,5));saveData();renderBondTracker();});
+
+  const btModalOverlay=document.getElementById('bond-tracker-modal-overlay');
+  const btModalTierWrap=document.getElementById('bond-tracker-modal-tier-options');
+  if(btModalTierWrap)btModalTierWrap.addEventListener('change',bondTrackerUpdateModalItemNote);
+  const btModalCancel=document.getElementById('bond-tracker-modal-cancel');
+  if(btModalCancel)btModalCancel.addEventListener('click',bondTrackerCloseModal);
+  const btModalSave=document.getElementById('bond-tracker-modal-save');
+  if(btModalSave)btModalSave.addEventListener('click',bondTrackerSaveModal);
+  if(btModalOverlay)btModalOverlay.addEventListener('click',e=>{if(e.target===btModalOverlay)bondTrackerCloseModal();});
+  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&btModalOverlay&&!btModalOverlay.hidden)bondTrackerCloseModal();});
 
   renderFons();
   renderBondGuide();

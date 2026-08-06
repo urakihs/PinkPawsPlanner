@@ -26,6 +26,13 @@ const BOND_CUM = (function () {
 
 const BOND_MAX_LEVEL = 10; // bond levels run 0..10
 
+// Gifting/dating caps (see NTE bond mechanics reference).
+const BOND_GIFT_CAP = 3;          // max gifts per character per day
+const BOND_GLOBAL_GIFT_CAP = 10;  // max gifts across the whole roster per day
+const BOND_DATE_GATE_LEVEL = 4;   // dating unlocks once a character reaches this bond level
+const BOND_DATE_BOND = 200;       // flat bond granted by a successful date, free
+const BOND_ZERO_BOOST = 0.05;     // Zero's Life Skill: +5% bond per gift while under his cap
+
 // Bond EXP total (post the level's floor) a character has banked, at `level` with
 // `expInLevel` progress into it. Used to compute the progress-bar percentage.
 function bondCumAtLevel(level) {
@@ -63,6 +70,24 @@ function bondAdvance(level, exp, addExp) {
   return { level: L, exp: e };
 }
 
+// Zero's Life Skill passive: at rank 1-5, boosts every gift's bond by +5% while the
+// RECIPIENT's own bond level is <= (rank + 3). Rank 0 (or Zero not owned) never applies.
+function bondZeroCap(zeroRank) {
+  const r = Math.max(0, Math.min(zeroRank | 0, 5));
+  return r >= 1 ? r + 3 : -1;
+}
+// Applies Zero's +5% (rounded to the nearest whole bond point) to a single gift's bond
+// value if the recipient's CURRENT level (before this gift) is under Zero's cap.
+function bondEffGiftBond(baseBond, recipientLevel, zeroRank) {
+  const cap = bondZeroCap(zeroRank);
+  return recipientLevel <= cap ? baseBond + Math.round(baseBond * BOND_ZERO_BOOST) : baseBond;
+}
+
 if (typeof module !== 'undefined' && module.exports) {
-  module.exports = { BOND_NEEDED, BOND_CUM, BOND_MAX_LEVEL, bondCumAtLevel, bondCurrentCum, bondLevelFromCum, bondApplyManualExp, bondAdvance };
+  module.exports = {
+    BOND_NEEDED, BOND_CUM, BOND_MAX_LEVEL,
+    BOND_GIFT_CAP, BOND_GLOBAL_GIFT_CAP, BOND_DATE_GATE_LEVEL, BOND_DATE_BOND, BOND_ZERO_BOOST,
+    bondCumAtLevel, bondCurrentCum, bondLevelFromCum, bondApplyManualExp, bondAdvance,
+    bondZeroCap, bondEffGiftBond,
+  };
 }
