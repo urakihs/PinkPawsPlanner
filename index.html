@@ -545,6 +545,7 @@ function fonsAddBondRow(){
   fonsRecomputeBondRow(c);
   fonsCustomRows.push(c);
   saveData();renderFons();
+  fonsOpenBondModal(c.id);
 }
 function fonsAddCustom(){
   fonsCustomRows.push({id:'c'+Date.now(),name:'New entry',fpr:0,runs:1});
@@ -760,8 +761,8 @@ function renderFons(){
       const noteHtml=found
         ? (found.location?`<div class="fons-bondcad-note">${bgEsc(found.location)}</div>`:'')
         : `<div class="fons-bondcad-note">No Bond Guide entry &mdash; manual Fons/gift: ${fmtQty(c.manualFons||0)}</div>`;
-      rows+=`<tr class="${dc} fons-custom-row" draggable="true" data-custom-drag-id="${c.id}">
-        <td><div class="fons-custom-actions"><span class="fons-grip" aria-hidden="true" title="Drag to reorder">&#10247;</span><input type="checkbox" class="fons-cb" data-fons-toggle="${key}"${enabled?' checked':''}><button class="fons-edit-btn" data-bond-edit="${c.id}" title="Edit">&#9998;</button><button class="fons-del-btn" data-custom-del="${c.id}" title="Remove">✕</button></div></td>
+      rows+=`<tr class="${dc} fons-custom-row" data-custom-drag-id="${c.id}">
+        <td><div class="fons-custom-actions"><span class="fons-grip" draggable="true" title="Drag to reorder">&#10247;</span><input type="checkbox" class="fons-cb" data-fons-toggle="${key}"${enabled?' checked':''}><button class="fons-edit-btn" data-bond-edit="${c.id}" title="Edit">&#9998;</button><button class="fons-del-btn" data-custom-del="${c.id}" title="Remove">✕</button></div></td>
         <td>
           <div class="fons-bond-summary">
             <b>${bgEsc(titleText)}</b>
@@ -787,8 +788,8 @@ function renderFons(){
       const dc=enabled?'':'fons-row-disabled';
       const valHtml=effectiveTarget?fmtSigned(enabled?cTotal:0,false):'—';
       const cadence=fonsCadenceBucket(c.rec);
-      rows+=`<tr class="${dc} fons-custom-row" draggable="true" data-custom-drag-id="${c.id}">
-        <td><div class="fons-custom-actions"><span class="fons-grip" aria-hidden="true" title="Drag to reorder">&#10247;</span><input type="checkbox" class="fons-cb" data-fons-toggle="${key}"${enabled?' checked':''}><button class="fons-del-btn" data-custom-del="${c.id}" title="Remove">✕</button></div></td>
+      rows+=`<tr class="${dc} fons-custom-row" data-custom-drag-id="${c.id}">
+        <td><div class="fons-custom-actions"><span class="fons-grip" draggable="true" title="Drag to reorder">&#10247;</span><input type="checkbox" class="fons-cb" data-fons-toggle="${key}"${enabled?' checked':''}><button class="fons-del-btn" data-custom-del="${c.id}" title="Remove">✕</button></div></td>
         <td><input class="fons-custom-name-inp" data-custom-id="${c.id}" data-custom-field="name" value="${String(c.name).replace(/"/g,'&quot;')}" placeholder="Name"></td>
         <td>
           <div class="fons-custom-cadence-row">
@@ -991,18 +992,22 @@ function renderFons(){
     btn.addEventListener('click',()=>{fonsCustomRows=fonsCustomRows.filter(r=>r.id!==btn.dataset.customDel);saveData();renderFons();});
   });
   tbody.querySelectorAll('.fons-custom-row').forEach(item=>{
-    item.addEventListener('dragstart',e=>{
-      _customDragId=item.dataset.customDragId;
-      item.classList.add('dragging');
-      e.dataTransfer.effectAllowed='move';
-      try{e.dataTransfer.setData('text/plain',_customDragId);}catch(_){}
-    });
-    item.addEventListener('dragend',()=>{
-      item.classList.remove('dragging');
-      tbody.querySelectorAll('.fons-custom-row').forEach(x=>x.classList.remove('drop-target'));
-      _customDragId=null;
-    });
+    const grip=item.querySelector('.fons-grip');
+    if(grip){
+      grip.addEventListener('dragstart',e=>{
+        _customDragId=item.dataset.customDragId;
+        item.classList.add('dragging');
+        e.dataTransfer.effectAllowed='move';
+        try{e.dataTransfer.setData('text/plain',_customDragId);}catch(_){}
+      });
+      grip.addEventListener('dragend',()=>{
+        item.classList.remove('dragging');
+        tbody.querySelectorAll('.fons-custom-row').forEach(x=>x.classList.remove('drop-target'));
+        _customDragId=null;
+      });
+    }
     item.addEventListener('dragover',e=>{
+      if(!_customDragId)return;
       e.preventDefault();
       e.dataTransfer.dropEffect='move';
       if(item.dataset.customDragId!==_customDragId){
