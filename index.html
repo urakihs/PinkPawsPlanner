@@ -21,10 +21,9 @@ a { color: inherit; }
 
 /* ── Sidebar (adapted from NTEelie's planner shell) ── */
 .sidebar { width: var(--sidebar-w); min-height: 100vh; background: var(--surface); border-right: 1px solid var(--border); display: flex; flex-direction: column; position: fixed; top: 0; left: 0; z-index: 50; overflow: hidden; }
-.sidebar-logo { padding: 18px 16px; border-bottom: 1px solid var(--border); display: flex; flex-direction: column; align-items: center; gap: 10px; text-align: center; }
-.sidebar-logo-icon { width: 72px; height: 72px; border-radius: 50%; flex-shrink: 0; }
-.sidebar-logo h1 { text-align: center; }
-.sidebar-logo h1 { font-size: 22px; font-weight: 700; letter-spacing: 1px; color: var(--accent); line-height: 1.2; margin: 0; text-transform: uppercase; }
+.sidebar-logo { position: relative; height: 140px; padding: 0 16px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: center; text-align: center; }
+.sidebar-logo-icon { width: 160px; height: 160px; border-radius: 50%; opacity: 0.30; position: absolute; left: 50%; top: -20px; transform: translateX(-50%); }
+.sidebar-logo h1 { position: relative; z-index: 1; font-size: 22px; font-weight: 700; letter-spacing: 1px; color: var(--accent); line-height: 1.2; margin: 0; text-transform: uppercase; }
 .sidebar-nav { flex: 1; padding: 10px 0; }
 .nav-item { display: flex; align-items: center; gap: 12px; padding: 14px 22px; font-size: 17px; color: var(--muted); cursor: pointer; transition: all .15s; border-left: 3px solid transparent; user-select: none; }
 .nav-item:hover { color: var(--text); background: var(--surface2); }
@@ -41,7 +40,6 @@ a { color: inherit; }
 .page.active { display: block; }
 .page-header { margin-bottom: 24px; }
 .page-title { font-size: 30px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; color: var(--accent); }
-.page-sub { font-size: 16px; color: var(--muted); margin-top: 4px; }
 
 /* ── Fons Management (verbatim from NTEelie's Fons Management page) ── */
 .fons-header-bar { display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; flex-wrap: wrap; margin-bottom: 20px; }
@@ -106,7 +104,6 @@ a { color: inherit; }
 .fons-goal-frac { text-align: center; font-size: 15px; font-weight: 700; color: var(--text); margin-top: 10px; }
 .fons-goal-frac span { color: var(--muted); font-weight: 500; }
 @media (max-width: 820px) { .fons-body-grid { grid-template-columns: 1fr; } }
-.fons-tbl-note { font-size: 14px; color: var(--muted); margin: 8px 0 0; max-width: 820px; font-style: italic; }
 .fons-tbl-toolbar { display: flex; justify-content: flex-end; padding: 10px 12px 0; }
 .fons-table-wrap { background: var(--surface); border-radius: 10px; overflow: hidden; min-width: 0; }
 .fons-tbl { width: 100%; border-collapse: collapse; font-size: 16px; table-layout: fixed; }
@@ -206,7 +203,7 @@ a { color: inherit; }
   <!-- Fons Management -->
   <div class="page active" id="page-fons">
     <div class="fons-header-bar">
-      <div class="page-header" style="margin-bottom:0"><div class="page-title">Fons Management</div><div class="page-sub">Calculate Fons income from now until a target date or savings goal. Only guaranteed sources are shown; limited-time events are excluded.</div></div>
+      <div class="page-header" style="margin-bottom:0"><div class="page-title">Fons Management</div></div>
       <div class="fons-header-controls">
         <div class="fons-chip-wrap">
           <span class="fons-chip-label">Current</span>
@@ -216,12 +213,12 @@ a { color: inherit; }
           <button type="button" class="fons-seg-btn" id="fons-seg-date" data-mode="date">Target Date</button>
           <button type="button" class="fons-seg-btn" id="fons-seg-goal" data-mode="goal">Target Fons</button>
         </div>
-        <div class="fons-days-left-chip" id="fons-days-left-chip"></div>
         <input class="fons-date-input" type="date" id="fons-target-date">
         <div class="fons-chip-wrap" id="fons-target-goal-wrap">
           <span class="fons-chip-label">Target</span>
           <input class="fons-chip-val" id="fons-target-goal" type="text" placeholder="e.g. 100,000,000" inputmode="numeric">
         </div>
+        <div class="fons-days-left-chip" id="fons-days-left-chip"></div>
       </div>
     </div>
     <div class="fons-warn" id="fons-past-date-warn" style="display:none">This date is in the past &mdash; pick a future date to calculate.</div>
@@ -242,7 +239,6 @@ a { color: inherit; }
       <button class="fons-custom-add-btn" onclick="fonsAddBondRow()">+ Add bond gift</button>
       <button class="fons-custom-add-btn" onclick="fonsAddCustom()">+ Add custom income / expense</button>
     </div>
-    <p class="fons-tbl-note">Toggling rows on or off only affects this Fons calculation. Bond gifts are just a Fons/day cost here &mdash; this app doesn't track bond level or exp, only what gifting is spending you per day.</p>
   </div>
 
   <!-- Bond gift edit modal -->
@@ -275,7 +271,7 @@ a { color: inherit; }
 
   <!-- Bond Guide -->
   <div class="page" id="page-bond-guide">
-    <div class="page-header"><div class="page-title">Bond Guide</div><div class="page-sub">Best 200/400-bond gift item per character, where to get it, and its Fons cost. Each character's two rows sit together for an at-a-glance comparison.</div></div>
+    <div class="page-header"><div class="page-title">Bond Guide</div></div>
     <div class="fons-wide-wrap">
       <table class="fons-eff-tbl bond-guide-tbl" id="bond-guide-table">
         <thead><tr><th>Character</th><th>Bond</th><th>Item</th><th>Location</th><th>Cost / Unit</th><th>Total Fons</th></tr></thead>
