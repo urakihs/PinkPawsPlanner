@@ -178,6 +178,27 @@ a { color: inherit; }
 .bond-guide-tbl .bond-guide-block-end td { border-top: none; }
 .bond-guide-tbl tbody.bond-guide-block:hover td { background: rgba(255,255,255,.02); }
 .bond-guide-tbl .bond-guide-empty td { text-align: center; color: var(--muted); padding: 24px 16px; }
+
+/* ── Mobile layout: sidebar collapses to a sticky top bar, tables scroll horizontally ── */
+@media (max-width: 760px) {
+  body { display: block; }
+  .sidebar { position: sticky; top: 0; width: 100%; min-height: 0; flex-direction: row; align-items: center; flex-wrap: wrap; border-right: none; border-bottom: 1px solid var(--border); padding: 8px 12px; gap: 4px 14px; }
+  .sidebar-logo { position: static; height: auto; padding: 0; border-bottom: none; flex-direction: row; gap: 8px; }
+  .sidebar-logo-icon { position: static; opacity: 1; width: 30px; height: 30px; transform: none; }
+  .sidebar-logo h1 { font-size: 16px; }
+  .sidebar-nav { flex: 0 0 auto; display: flex; padding: 0; gap: 2px; }
+  .nav-item { padding: 8px 12px; font-size: 14px; border-left: none; border-radius: 6px; gap: 8px; }
+  .nav-item.active { border-left: none; }
+  .nav-item svg { width: 16px; height: 16px; }
+  .sidebar-footer, .sidebar-credit { display: none; }
+  .main { margin-left: 0; max-width: 100%; padding: 20px 16px 60px; }
+  .page-title { font-size: 22px; }
+  .fons-chip-val { width: auto; min-width: 90px; }
+  .fons-date-input { width: 100%; max-width: 175px; }
+  .fons-table-wrap, .fons-wide-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .fons-tbl { min-width: 640px; }
+  .fons-eff-tbl, .bond-guide-tbl { min-width: 560px; }
+}
 </style>
 </head>
 <body>
