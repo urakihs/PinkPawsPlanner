@@ -152,6 +152,15 @@ a { color: inherit; }
 .fons-modal-btn { border-radius: 8px; padding: 8px 16px; font-size: 14px; font-weight: 600; cursor: pointer; font-family: inherit; border: 1px solid var(--border); background: var(--surface2); color: var(--text); }
 .fons-modal-btn:hover { border-color: var(--muted); }
 .fons-modal-btn.primary { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+.fons-tier-options { display: flex; flex-direction: column; gap: 8px; }
+.fons-tier-option { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface2); cursor: pointer; transition: border-color .15s, background .15s; }
+#fons-bond-modal-tier-options .fons-tier-option { text-transform: none; letter-spacing: normal; font-weight: 400; }
+.fons-tier-option:hover { border-color: var(--muted); }
+.fons-tier-option:has(input:checked) { border-color: var(--accent); background: rgba(232,184,75,.08); }
+.fons-tier-option input[type="radio"] { appearance: none; width: 16px; height: 16px; margin: 0; flex-shrink: 0; border: 2px solid var(--muted); border-radius: 50%; position: relative; cursor: pointer; }
+.fons-tier-option input[type="radio"]:checked { border-color: var(--accent); }
+.fons-tier-option input[type="radio"]:checked::after { content: ""; position: absolute; inset: 3px; border-radius: 50%; background: var(--accent); }
+.fons-tier-option-label { font-size: 14px; color: var(--text); line-height: 1.3; }
 
 /* ── Bond Guide + shared "efficiency-table" look ── */
 .fons-eff-tbl, .bond-guide-tbl { width: 100%; border-collapse: collapse; font-size: 16px; table-layout: fixed; }
@@ -243,11 +252,8 @@ a { color: inherit; }
         <select id="fons-bond-modal-character"></select>
       </div>
       <div class="fons-modal-field">
-        <label for="fons-bond-modal-tier">Bond Tier</label>
-        <select id="fons-bond-modal-tier">
-          <option value="200">200 Bond</option>
-          <option value="400">400 Bond</option>
-        </select>
+        <label>Bond Tier</label>
+        <div class="fons-tier-options" id="fons-bond-modal-tier-options"></div>
       </div>
       <div class="fons-modal-field">
         <label for="fons-bond-modal-gifts">Gifts / Day</label>
@@ -550,20 +556,27 @@ function fonsBondModalTierLabel(characterId,tier){
   const found=fonsBondLookup(characterId,tier);
   return found?`${tier} Bond — ${found.name} (${fmtQty(found.costPerUnit)} Fons)`:`${tier} Bond`;
 }
+function fonsGetBondModalTier(){
+  const checked=document.querySelector('#fons-bond-modal-tier-options input[type="radio"]:checked');
+  return checked?checked.value:'200';
+}
 function fonsUpdateBondModalTierOptions(selectedTier){
   const charSel=document.getElementById('fons-bond-modal-character');
-  const tierSel=document.getElementById('fons-bond-modal-tier');
-  if(!charSel||!tierSel)return;
-  const cur=selectedTier!=null?String(selectedTier):(tierSel.value||'200');
-  tierSel.innerHTML=[200,400].map(t=>`<option value="${t}" ${String(t)===cur?'selected':''}>${bgEsc(fonsBondModalTierLabel(charSel.value,t))}</option>`).join('');
+  const wrap=document.getElementById('fons-bond-modal-tier-options');
+  if(!charSel||!wrap)return;
+  const cur=selectedTier!=null?String(selectedTier):fonsGetBondModalTier();
+  wrap.innerHTML=[200,400].map(t=>{
+    const id='fons-bond-modal-tier-'+t;
+    const checked=String(t)===cur;
+    return `<label class="fons-tier-option" for="${id}"><input type="radio" name="fons-bond-modal-tier" id="${id}" value="${t}"${checked?' checked':''}><span class="fons-tier-option-label">${bgEsc(fonsBondModalTierLabel(charSel.value,t))}</span></label>`;
+  }).join('');
 }
 function fonsUpdateBondModalNote(){
   const charSel=document.getElementById('fons-bond-modal-character');
-  const tierSel=document.getElementById('fons-bond-modal-tier');
   const manualWrap=document.getElementById('fons-bond-modal-manual-wrap');
   const noteEl=document.getElementById('fons-bond-modal-item-note');
-  if(!charSel||!tierSel||!manualWrap||!noteEl)return;
-  const found=fonsBondLookup(charSel.value,parseInt(tierSel.value)||200);
+  if(!charSel||!manualWrap||!noteEl)return;
+  const found=fonsBondLookup(charSel.value,parseInt(fonsGetBondModalTier())||200);
   if(found){
     noteEl.textContent=found.location?`Location: ${found.location}`:'';
     manualWrap.style.display='none';
@@ -600,7 +613,7 @@ function fonsSaveBondModal(){
   const c=fonsCustomRows.find(r=>r.id===fonsEditingBondId&&r.kind==='bond');
   if(!c)return;
   c.characterId=document.getElementById('fons-bond-modal-character').value;
-  c.tier=parseInt(document.getElementById('fons-bond-modal-tier').value)||200;
+  c.tier=parseInt(fonsGetBondModalTier())||200;
   c.giftsPerDay=Math.max(0,parseInt(document.getElementById('fons-bond-modal-gifts').value)||0);
   c.manualFons=Math.max(0,parseInt(document.getElementById('fons-bond-modal-manual').value)||0);
   fonsRecomputeBondRow(c);
@@ -1110,9 +1123,9 @@ document.addEventListener('DOMContentLoaded',()=>{
 
   const bondModalOverlay=document.getElementById('fons-bond-modal-overlay');
   const bondModalCharSel=document.getElementById('fons-bond-modal-character');
-  const bondModalTierSel=document.getElementById('fons-bond-modal-tier');
+  const bondModalTierWrap=document.getElementById('fons-bond-modal-tier-options');
   if(bondModalCharSel)bondModalCharSel.addEventListener('change',fonsOnBondModalCharacterChange);
-  if(bondModalTierSel)bondModalTierSel.addEventListener('change',fonsUpdateBondModalNote);
+  if(bondModalTierWrap)bondModalTierWrap.addEventListener('change',fonsUpdateBondModalNote);
   const bondModalCancel=document.getElementById('fons-bond-modal-cancel');
   if(bondModalCancel)bondModalCancel.addEventListener('click',fonsCloseBondModal);
   const bondModalSave=document.getElementById('fons-bond-modal-save');
