@@ -851,7 +851,14 @@ function renderFons(){
   const totalExpend=grandTotal-totalIncome;
   const daysLeftChipEl=document.getElementById('fons-days-left-chip');
   if(daysLeftChipEl){
-    daysLeftChipEl.innerHTML=(hasCalc&&inDateMode)?`<span class="fons-chip-label">Days Left</span><span class="fons-chip-val" style="width:auto">${days}</span>`:'';
+    if(hasCalc&&inDateMode){
+      daysLeftChipEl.innerHTML=`<span class="fons-chip-label">Days Left</span><span class="fons-chip-val" style="width:auto">${days}</span>`;
+    } else if(hasGoal&&fonsTargetGoal>0){
+      const goalDaysDisplay=goalMet?0:(goalDays>=999?'999+':goalDays);
+      daysLeftChipEl.innerHTML=`<span class="fons-chip-label">Days Left</span><span class="fons-chip-val" style="width:auto">${goalDaysDisplay}</span>`;
+    } else {
+      daysLeftChipEl.innerHTML='';
+    }
   }
   const todayWidgetEl=document.getElementById('fons-widget-today');
   if(todayWidgetEl){
