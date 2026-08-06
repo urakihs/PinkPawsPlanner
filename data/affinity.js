@@ -26,6 +26,43 @@ const BOND_CUM = (function () {
 
 const BOND_MAX_LEVEL = 10; // bond levels run 0..10
 
+// Bond EXP total (post the level's floor) a character has banked, at `level` with
+// `expInLevel` progress into it. Used to compute the progress-bar percentage.
+function bondCumAtLevel(level) {
+  const L = Math.max(0, Math.min(level | 0, BOND_MAX_LEVEL));
+  return BOND_CUM[L];
+}
+function bondCurrentCum(level, expInLevel) {
+  const L = Math.max(0, Math.min(level | 0, BOND_MAX_LEVEL));
+  const within = L < BOND_MAX_LEVEL ? Math.max(0, Math.min(expInLevel | 0, BOND_NEEDED[L])) : 0;
+  return BOND_CUM[L] + within;
+}
+function bondLevelFromCum(cum) {
+  let L = 0;
+  for (let i = 0; i <= BOND_MAX_LEVEL; i++) { if (cum >= BOND_CUM[i]) L = i; else break; }
+  return L;
+}
+// Manual "type an exact exp value" entry. Clamps within the current level; reaching/
+// exceeding the level's requirement advances exactly ONE level to 0 exp (no cascade --
+// that's what bondAdvance is for). At max level, exp always stays 0.
+function bondApplyManualExp(level, typedExp) {
+  let L = Math.max(0, Math.min(level | 0, BOND_MAX_LEVEL));
+  const e = Math.max(0, typedExp | 0);
+  if (L >= BOND_MAX_LEVEL) return { level: BOND_MAX_LEVEL, exp: 0 };
+  if (e >= BOND_NEEDED[L]) return { level: L + 1, exp: 0 };
+  return { level: L, exp: e };
+}
+// "Log a gift" / any exp award that should cascade through multiple levels if it's big
+// enough (e.g. a +400 gift landing near a level boundary). Caps at max level (surplus
+// exp beyond max is discarded, matching in-game behavior).
+function bondAdvance(level, exp, addExp) {
+  let L = Math.max(0, Math.min(level | 0, BOND_MAX_LEVEL));
+  let e = Math.max(0, exp | 0) + Math.max(0, addExp | 0);
+  while (L < BOND_MAX_LEVEL && e >= BOND_NEEDED[L]) { e -= BOND_NEEDED[L]; L++; }
+  if (L >= BOND_MAX_LEVEL) e = 0;
+  return { level: L, exp: e };
+}
+
 if (typeof module !== 'undefined' && module.exports) {
-  module.exports = { BOND_NEEDED, BOND_CUM, BOND_MAX_LEVEL };
+  module.exports = { BOND_NEEDED, BOND_CUM, BOND_MAX_LEVEL, bondCumAtLevel, bondCurrentCum, bondLevelFromCum, bondApplyManualExp, bondAdvance };
 }

@@ -139,6 +139,18 @@ a { color: inherit; }
 .fons-edit-btn { background: none; border: none; color: var(--muted); cursor: pointer; font-size: 15px; padding: 0; line-height: 1; transition: color .15s; }
 .fons-edit-btn:hover { color: var(--accent); }
 
+/* ── Bond Tracker ── */
+.fons-bondcad-sel, .fons-bondcad-num { background: var(--surface2); border: 1px solid var(--border); border-radius: 6px; color: var(--text); font-size: 14px; padding: 5px 7px; font-family: inherit; }
+.bond-tracker-tbl td { vertical-align: middle; }
+.bond-tracker-bar { height: 10px; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; overflow: hidden; position: relative; margin-top: 6px; min-width: 120px; }
+.bond-tracker-bar .have { position: absolute; left: 0; top: 0; bottom: 0; background: var(--accent); transition: width .25s ease; }
+.bond-tracker-bar-label { font-size: 12px; color: var(--muted); margin-top: 3px; }
+.bond-tracker-gift-btn { background: var(--surface2); border: 1px solid var(--border); border-radius: 6px; color: var(--accent); font-size: 13px; font-weight: 600; padding: 6px 12px; cursor: pointer; font-family: inherit; margin-right: 6px; }
+.bond-tracker-gift-btn:hover { border-color: var(--accent); }
+.bond-tracker-gift-btn:disabled { opacity: .4; cursor: not-allowed; border-color: var(--border); color: var(--muted); }
+.bond-tracker-maxed { font-size: 12px; color: var(--success); font-weight: 600; }
+.bond-tracker-add-row { display: flex; gap: 8px; align-items: center; margin-top: 12px; }
+
 /* ── Edit modal (bond gift rows) ── */
 .fons-modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.55); display: flex; align-items: center; justify-content: center; z-index: 100; }
 .fons-modal-overlay[hidden] { display: none; }
@@ -222,6 +234,7 @@ a { color: inherit; }
   <div class="sidebar-nav">
     <div class="nav-item active" data-page="fons" title="Fons Management"><svg viewBox="0 0 24 24"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg><span>Fons Management</span></div>
     <div class="nav-item" data-page="bond-guide" title="Bond Guide"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg><span>Bond Guide</span></div>
+    <div class="nav-item" data-page="bond-tracker" title="Bond Tracker"><svg viewBox="0 0 24 24"><path d="M12 20V10M18 20V4M6 20v-6"/></svg><span>Bond Tracker</span></div>
   </div>
   <div class="sidebar-footer">
     <span class="save-indicator" id="save-indicator">&#10003;</span>
@@ -310,6 +323,21 @@ a { color: inherit; }
     </div>
   </div>
 
+  <!-- Bond Tracker -->
+  <div class="page" id="page-bond-tracker">
+    <div class="page-header"><div class="page-title">Bond Tracker</div></div>
+    <div class="fons-wide-wrap">
+      <table class="fons-eff-tbl bond-tracker-tbl" id="bond-tracker-table">
+        <thead><tr><th style="text-align:left">Character</th><th style="text-align:left">Level</th><th style="text-align:left">Progress</th><th style="text-align:left">Log Gift</th><th></th></tr></thead>
+        <tbody id="bond-tracker-body"></tbody>
+      </table>
+    </div>
+    <div class="bond-tracker-add-row">
+      <select class="fons-bondcad-sel" id="bond-tracker-add-sel"></select>
+      <button class="fons-custom-add-btn" onclick="bondTrackerAddRow()">+ Add character</button>
+    </div>
+  </div>
+
 </div>
 
 <script src="data/characters.js"></script>
@@ -337,7 +365,7 @@ a { color: inherit; }
  *  flows through the exact same recurring-row math as any other custom entry.
  * ==========================================================================*/
 
-const SAVE_KEY = 'pink-paws-planner-v2';
+const SAVE_KEY = 'pink-paws-planner-v3';
 
 // ── State ──────────────────────────────────────────────────────────────────
 let inventory = {};           // { Fons: n }
@@ -346,6 +374,9 @@ let fonsDisabled = {};
 let fonsMode = 'date';        // 'date' | 'goal'
 let fonsTargetGoal = 0;
 let fonsCustomRows = [];      // [{id, kind:'bond'|undefined, ...}] -- see fonsAddBondRow/fonsAddCustom
+let bondTracker = []; // [{characterId, level, exp}] -- one entry per tracked character.
+                       // level: 0-10 (BOND_MAX_LEVEL). exp: exp banked within `level`,
+                       // 0 <= exp < BOND_NEEDED[level] (0 when level is maxed).
 let fonsSourceOverrides = {}; // { [FONS_SOURCES id]: editedFpr } -- only Fons/Run is editable, cadence is fixed by the game
 const DEFAULT_FONS_ORDER = (typeof FONS_SOURCES !== 'undefined' ? FONS_SOURCES : []).map(s => s.id);
 let fonsOrder = DEFAULT_FONS_ORDER.slice();
@@ -1134,6 +1165,101 @@ function renderBondGuide(){
   table.insertAdjacentHTML('beforeend',html);
 }
 
+// ── Bond Tracker ───────────────────────────────────────────────────────────
+function bondTrackerAvailableChars(){
+  const used = new Set(bondTracker.map(r => r.characterId));
+  return (typeof CHARACTER_DB !== 'undefined' ? CHARACTER_DB : []).filter(c => !used.has(c.id));
+}
+function bondTrackerAddRow(){
+  const sel = document.getElementById('bond-tracker-add-sel');
+  const characterId = sel && sel.value;
+  if (!characterId || bondTracker.some(r => r.characterId === characterId)) return;
+  bondTracker.push({ characterId, level: 0, exp: 0 });
+  saveData(); renderBondTracker();
+}
+function bondTrackerRemove(characterId){
+  bondTracker = bondTracker.filter(r => r.characterId !== characterId);
+  saveData(); renderBondTracker();
+}
+function bondTrackerSetLevel(characterId, v){
+  const row = bondTracker.find(r => r.characterId === characterId); if (!row) return;
+  row.level = Math.max(0, Math.min(parseInt(v) || 0, BOND_MAX_LEVEL));
+  row.exp = row.level < BOND_MAX_LEVEL ? Math.min(row.exp, BOND_NEEDED[row.level]) : 0;
+  saveData(); renderBondTracker();
+}
+function bondTrackerSetExp(characterId, v){
+  const row = bondTracker.find(r => r.characterId === characterId); if (!row) return;
+  const r = bondApplyManualExp(row.level, parseInt(v) || 0);
+  row.level = r.level; row.exp = r.exp;
+  saveData(); renderBondTracker();
+}
+function bondTrackerLogGift(characterId, tier){
+  const row = bondTracker.find(r => r.characterId === characterId); if (!row) return;
+  if (row.level >= BOND_MAX_LEVEL) return;
+  const r = bondAdvance(row.level, row.exp, tier);
+  row.level = r.level; row.exp = r.exp;
+  saveData(); renderBondTracker();
+}
+function renderBondTracker(){
+  const body = document.getElementById('bond-tracker-body');
+  const addSel = document.getElementById('bond-tracker-add-sel');
+  if (!body || !addSel) return;
+
+  const available = bondTrackerAvailableChars();
+  addSel.innerHTML = available.length
+    ? available.map(c => `<option value="${c.id}">${bgEsc(c.name)}</option>`).join('')
+    : '<option value="">No characters left to add</option>';
+  addSel.disabled = !available.length;
+
+  if (!bondTracker.length) {
+    body.innerHTML = `<tr><td colspan="5" class="fons-tbl-note" style="padding:20px 16px">No characters tracked yet — pick one below and add it.</td></tr>`;
+    return;
+  }
+
+  const rows = bondTracker.slice().sort((a, b) => {
+    const na = ((typeof CHARACTER_DB !== 'undefined' ? CHARACTER_DB : []).find(c => c.id === a.characterId) || {}).name || a.characterId;
+    const nb = ((typeof CHARACTER_DB !== 'undefined' ? CHARACTER_DB : []).find(c => c.id === b.characterId) || {}).name || b.characterId;
+    return na.localeCompare(nb);
+  });
+
+  body.innerHTML = rows.map(row => {
+    const db = (typeof CHARACTER_DB !== 'undefined' ? CHARACTER_DB : []).find(c => c.id === row.characterId);
+    const name = db ? db.name : row.characterId;
+    const maxed = row.level >= BOND_MAX_LEVEL;
+    const needed = maxed ? 0 : BOND_NEEDED[row.level];
+    const pct = maxed ? 100 : Math.min(100, needed ? (row.exp / needed) * 100 : 0);
+    let lvlOpts = '';
+    for (let i = 0; i <= BOND_MAX_LEVEL; i++) lvlOpts += `<option value="${i}" ${row.level === i ? 'selected' : ''}>Lv ${i}</option>`;
+    return `<tr data-bt-char="${row.characterId}">
+      <td>${bgEsc(name)}</td>
+      <td><select class="fons-bondcad-sel" data-bt-field="level" data-bt-char="${row.characterId}">${lvlOpts}</select></td>
+      <td>
+        <div class="bond-tracker-bar"><div class="have" style="width:${pct}%"></div></div>
+        <div class="bond-tracker-bar-label">${maxed ? 'Maxed' : `<input class="fons-bondcad-num" style="width:64px" type="number" min="0" max="${needed}" value="${row.exp}" data-bt-field="exp" data-bt-char="${row.characterId}"> / ${needed}`}</div>
+      </td>
+      <td>
+        <button class="bond-tracker-gift-btn" data-bt-gift="${row.characterId}" data-tier="200" ${maxed ? 'disabled' : ''}>+200</button>
+        <button class="bond-tracker-gift-btn" data-bt-gift="${row.characterId}" data-tier="400" ${maxed ? 'disabled' : ''}>+400</button>
+        ${maxed ? '<span class="bond-tracker-maxed">&#10003; Maxed</span>' : ''}
+      </td>
+      <td><button class="fons-del-btn" data-bt-del="${row.characterId}" title="Remove">&#10005;</button></td>
+    </tr>`;
+  }).join('');
+
+  body.querySelectorAll('[data-bt-field="level"]').forEach(el => {
+    el.addEventListener('change', () => bondTrackerSetLevel(el.dataset.btChar, el.value));
+  });
+  body.querySelectorAll('[data-bt-field="exp"]').forEach(el => {
+    el.addEventListener('change', () => bondTrackerSetExp(el.dataset.btChar, el.value));
+  });
+  body.querySelectorAll('[data-bt-gift]').forEach(el => {
+    el.addEventListener('click', () => bondTrackerLogGift(el.dataset.btGift, parseInt(el.dataset.tier)));
+  });
+  body.querySelectorAll('[data-bt-del]').forEach(el => {
+    el.addEventListener('click', () => bondTrackerRemove(el.dataset.btDel));
+  });
+}
+
 // ── Page routing ──────────────────────────────────────────────────────────
 function switchPage(page){
   currentPage=page;
@@ -1141,11 +1267,12 @@ function switchPage(page){
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.toggle('active',n.dataset.page===page));
   if(page==='fons')renderFons();
   if(page==='bond-guide')renderBondGuide();
+  if(page==='bond-tracker')renderBondTracker();
 }
 
 // ── Save / load / export / import ─────────────────────────────────────────
 function getSaveData(){
-  return {inventory,fonsTargetDate,fonsDisabled,fonsMode,fonsTargetGoal,fonsCustomRows,fonsOrder,fonsSourceOverrides};
+  return {inventory,fonsTargetDate,fonsDisabled,fonsMode,fonsTargetGoal,fonsCustomRows,fonsOrder,fonsSourceOverrides,bondTracker};
 }
 function applySaveData(d){
   if(!d||typeof d!=='object')return;
@@ -1157,6 +1284,7 @@ function applySaveData(d){
   fonsCustomRows=Array.isArray(d.fonsCustomRows)?d.fonsCustomRows:[];
   fonsOrder=sanitizeFonsOrder(d.fonsOrder);
   fonsSourceOverrides=d.fonsSourceOverrides&&typeof d.fonsSourceOverrides==='object'?d.fonsSourceOverrides:{};
+  bondTracker=Array.isArray(d.bondTracker)?d.bondTracker:[];
 }
 function saveData(){
   try{localStorage.setItem(SAVE_KEY,JSON.stringify(getSaveData()));showSaveIndicator();}catch(e){console.warn('Save failed:',e);}
@@ -1215,6 +1343,7 @@ document.addEventListener('DOMContentLoaded',()=>{
 
   renderFons();
   renderBondGuide();
+  renderBondTracker();
   switchPage('fons');
 });
 </script>
