@@ -95,6 +95,10 @@ a { color: inherit; }
 .fons-widget-still-need-label { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: .3px; margin-bottom: 3px; }
 .fons-widget-still-need-val { font-size: 20px; font-weight: 700; color: var(--danger); }
 .fons-widget-note { font-size: 13px; color: var(--muted); margin-top: 10px; line-height: 1.4; }
+.fons-gauge-total-label { text-align: center; font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.3px; }
+.fons-gauge-total-val { text-align: center; font-size: 23px; font-weight: 700; color: var(--accent); margin-top: 2px; margin-bottom: 18px; }
+.fons-gauge-needle { transition: transform 1.1s cubic-bezier(0.34, 1.2, 0.4, 1); }
+.fons-gauge-spend-arc { transition: stroke-dashoffset 1.1s cubic-bezier(0.22, 0.8, 0.3, 1); }
 @media (max-width: 820px) { .fons-body-grid { grid-template-columns: 1fr; } }
 .fons-tbl-note { font-size: 14px; color: var(--muted); margin: 8px 0 0; max-width: 820px; font-style: italic; }
 .fons-table-wrap { background: var(--surface); border-radius: 10px; overflow: hidden; min-width: 0; }
@@ -310,6 +314,95 @@ function fonsRingHtml(haveFrac,planFrac,opts){
     <circle cx="${c}" cy="${c}" r="${r}" fill="none" stroke="${haveColor}" stroke-width="${sw}" stroke-linecap="round" stroke-dasharray="${haveLen} ${circ}" transform="rotate(-90 ${c} ${c})"></circle>
     ${planLen>0?`<circle cx="${c}" cy="${c}" r="${r}" fill="none" stroke="${planColor}" stroke-width="${sw}" stroke-linecap="round" stroke-dasharray="${planLen} ${circ}" stroke-dashoffset="${-haveLen}" transform="rotate(-90 ${c} ${c})"></circle>`:''}
   </svg>`;
+}
+// fonsGaugeHtml -- semi-circle speedometer for the Fons Flow widget (Target Date mode). The dial
+// spans Current + Income (gold segment then green), and a red fill + needle sweep in on top to
+// show how much of that gets spent -- both driven purely by spendFrac so they always agree.
+// Ported verbatim from NTEelie (app/index.html) -- see that repo's commits
+// "Replace Fons Flow widget with animated speedometer gauge" and the follow-up
+// negative-spend-fraction fix.
+function fonsGaugePolar(cx,cy,r,angleDeg){
+  const rad=(angleDeg-90)*Math.PI/180;
+  return {x:cx+r*Math.cos(rad),y:cy+r*Math.sin(rad)};
+}
+function fonsGaugeAngleAt(frac){ return -90+frac*180; }
+function fonsGaugeArcPath(cx,cy,r,fracFrom,fracTo){
+  const a0=fonsGaugeAngleAt(fracFrom),a1=fonsGaugeAngleAt(fracTo);
+  const p0=fonsGaugePolar(cx,cy,r,a0),p1=fonsGaugePolar(cx,cy,r,a1);
+  const largeArc=(a1-a0)>180?1:0;
+  return `M ${p0.x} ${p0.y} A ${r} ${r} 0 ${largeArc} 1 ${p1.x} ${p1.y}`;
+}
+// Flared teardrop needle: wide at the base (near the pivot), curving inward to a point at the tip.
+function fonsGaugeNeedlePath(cx,cy,angleDeg,tipR,baseR,baseHalfWidth,bulge){
+  const rad=(angleDeg-90)*Math.PI/180;
+  const dx=Math.cos(rad),dy=Math.sin(rad);
+  const px=-dy,py=dx;
+  const tip={x:cx+tipR*dx,y:cy+tipR*dy};
+  const baseC={x:cx+baseR*dx,y:cy+baseR*dy};
+  const baseL={x:baseC.x+px*baseHalfWidth,y:baseC.y+py*baseHalfWidth};
+  const baseR_={x:baseC.x-px*baseHalfWidth,y:baseC.y-py*baseHalfWidth};
+  const midR=baseR+(tipR-baseR)*0.32;
+  const bulgeL={x:cx+midR*dx+px*bulge,y:cy+midR*dy+py*bulge};
+  const bulgeR_={x:cx+midR*dx-px*bulge,y:cy+midR*dy-py*bulge};
+  return `M ${baseL.x} ${baseL.y} Q ${bulgeL.x} ${bulgeL.y} ${tip.x} ${tip.y} Q ${bulgeR_.x} ${bulgeR_.y} ${baseR_.x} ${baseR_.y} Z`;
+}
+function fonsGaugeHtml(current,income,spend){
+  const total=current+income;
+  const spendFrac=total>0?Math.min(1,spend/total):(spend>0?1:0);
+  const currentFrac=total>0?Math.min(1,current/total):0;
+  const cx=140,cy=132,r=100,sw=20;
+  const currentPath=fonsGaugeArcPath(cx,cy,r,0,currentFrac);
+  const incomePath=fonsGaugeArcPath(cx,cy,r,currentFrac,1);
+  const spendPath=fonsGaugeArcPath(cx,cy,r,0,spendFrac);
+  // Dropped below the arc's tips (not level with cy) so they clear the round stroke-linecap bulge,
+  // which extends vertically at the endpoints rather than outward.
+  const leftLabel={x:cx-(r+sw/2+4),y:cy+20};
+  const rightLabel={x:cx+(r+sw/2+4),y:cy+20};
+  const needleAngle=fonsGaugeAngleAt(spendFrac);
+  // Needle stays fully inside the ring's inner edge (r - sw/2) instead of crossing over the
+  // colored arc -- tip stops a few px short of the inner edge rather than reaching past the outside.
+  const needleTipR=r-sw/2-6;
+  const needlePathD=fonsGaugeNeedlePath(cx,cy,needleAngle,needleTipR,10,6,2.5);
+  const startRotate=-90-needleAngle;
+  // Label the red fill itself (on the dial, not the needle) at its midpoint -- only when the fill
+  // is wide enough to hold the word; a dark outline keeps it legible over red, gold, or green.
+  const spendLabelAngle=fonsGaugeAngleAt(spendFrac/2);
+  const spendLabelPt=fonsGaugePolar(cx,cy,r,spendLabelAngle);
+  const showSpendLabel=spendFrac>=0.14;
+  return `<svg width="100%" viewBox="0 0 280 172" style="display:block;overflow:visible">
+    <path d="${currentPath}" fill="none" stroke="var(--accent)" stroke-width="${sw}" stroke-linecap="round"></path>
+    <path d="${incomePath}" fill="none" stroke="var(--success,#4be89a)" stroke-width="${sw}" stroke-linecap="round"></path>
+    <path id="fons-gauge-spend-arc" class="fons-gauge-spend-arc" d="${spendPath}" fill="none" stroke="var(--danger)" stroke-width="${sw}" stroke-linecap="round"></path>
+    <text x="${leftLabel.x}" y="${leftLabel.y}" text-anchor="middle" font-size="10" fill="var(--muted)">0</text>
+    <text x="${rightLabel.x}" y="${rightLabel.y}" text-anchor="middle" font-size="10" fill="var(--muted)">Total</text>
+    ${showSpendLabel?`<text x="${spendLabelPt.x}" y="${spendLabelPt.y+3}" text-anchor="middle" font-size="9" font-weight="700" fill="#ffffff" stroke="var(--danger)" stroke-width="3" paint-order="stroke" style="letter-spacing:0.2px">SPEND</text>`:''}
+    <g id="fons-gauge-needle" class="fons-gauge-needle" data-start-rotate="rotate(${startRotate}deg)" style="transform-origin:${cx}px ${cy}px;transform:rotate(${startRotate}deg)">
+      <path d="${needlePathD}" fill="#ffffff"></path>
+      <circle cx="${cx}" cy="${cy}" r="6" fill="#ffffff"></circle>
+      <circle cx="${cx}" cy="${cy}" r="3" fill="var(--surface)"></circle>
+    </g>
+  </svg>`;
+}
+// Replays the red-fill + needle-sweep animation. Called after the gauge's markup is inserted --
+// both on first render and on every later re-render (balance edits, toggles, etc.) so the dial
+// re-animates into its new position instead of just snapping there.
+function fonsGaugePlayAnimation(){
+  const spendPathEl=document.getElementById('fons-gauge-spend-arc');
+  const needleEl=document.getElementById('fons-gauge-needle');
+  if(!spendPathEl||!needleEl)return;
+  const len=spendPathEl.getTotalLength();
+  spendPathEl.style.transition='none';
+  spendPathEl.style.strokeDasharray=len;
+  spendPathEl.style.strokeDashoffset=len;
+  needleEl.style.transition='none';
+  needleEl.style.transform=needleEl.dataset.startRotate;
+  void spendPathEl.getBoundingClientRect();
+  requestAnimationFrame(()=>{
+    spendPathEl.style.transition='';
+    needleEl.style.transition='';
+    spendPathEl.style.strokeDashoffset=0;
+    needleEl.style.transform='rotate(0deg)';
+  });
 }
 function sanitizeFonsOrder(arr){
   const valid=new Set(DEFAULT_FONS_ORDER);
@@ -606,30 +699,24 @@ function renderFons(){
           <div class="fons-widget-still-need-val">${goalMet?'<span style="color:var(--success,#4be89a)">Goal met</span>':fmt(stillNeed)}</div>
         </div>`;
     } else {
-      const spendOfIncome=totalIncome>0?Math.abs(totalExpend)/totalIncome:(Math.abs(totalExpend)>0?Infinity:0);
-      const redFrac=Math.min(1,spendOfIncome);
-      const greenFrac=Math.max(0,1-redFrac);
-      const spendPct=Number.isFinite(spendOfIncome)?Math.round(spendOfIncome*100):100;
-      const netColor=grandTotal<0?'var(--danger)':'var(--accent)';
-      const netVal=grandTotal<0?`−${fmt(Math.abs(grandTotal))}`:fmt(grandTotal);
+      const totalCI=currentFons+totalIncome;
       const projected=currentFons+grandTotal;
       const projColor=projected<0?'var(--danger)':'var(--accent)';
       const projVal=projected<0?`−${fmt(Math.abs(projected))}`:fmt(projected);
       modeWidgetEl.innerHTML=`<div class="fons-widget-title">Fons Flow · ${days}d</div>
-        <div class="fons-widget-ring-wrap">${fonsRingHtml(greenFrac,redFrac,{haveColor:'var(--success)',planColor:'var(--danger)'})}<div class="fons-widget-ring-label-pct">${spendPct}%</div></div>
-        <div class="fons-widget-ring-label-sub">of income spent</div>
+        <div class="fons-gauge-total-label">Total (Current + Income)</div>
+        <div class="fons-gauge-total-val">${fmt(totalCI)}</div>
+        ${fonsGaugeHtml(currentFons,totalIncome,Math.abs(totalExpend))}
         <div class="fons-widget-stat-rows">
-          <div class="fons-widget-stat-row"><span><span class="fons-widget-legend-dot" style="background:var(--success);display:inline-block;margin-right:5px"></span>Income</span><b>${fmt(totalIncome)}</b></div>
+          <div class="fons-widget-stat-row"><span><span class="fons-widget-legend-dot" style="background:var(--accent);display:inline-block;margin-right:5px"></span>Current Balance</span><b>${fmt(currentFons)}</b></div>
+          <div class="fons-widget-stat-row"><span><span class="fons-widget-legend-dot" style="background:var(--success);display:inline-block;margin-right:5px"></span>Income</span><b>+${fmt(totalIncome)}</b></div>
           <div class="fons-widget-stat-row"><span><span class="fons-widget-legend-dot" style="background:var(--danger);display:inline-block;margin-right:5px"></span>Spend</span><b>${fmtSigned(totalExpend,false)}</b></div>
-        </div>
-        <div class="fons-widget-still-need">
-          <div class="fons-widget-still-need-label">Net Income</div>
-          <div class="fons-widget-still-need-val" style="color:${netColor}">${netVal}</div>
         </div>
         <div class="fons-widget-still-need">
           <div class="fons-widget-still-need-label">Projected Balance</div>
           <div class="fons-widget-still-need-val" style="color:${projColor}">${projVal}</div>
         </div>`;
+      fonsGaugePlayAnimation();
     }
   }
   tbody.querySelectorAll('[data-fons-toggle]').forEach(cb=>{
