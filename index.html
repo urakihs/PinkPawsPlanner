@@ -879,13 +879,14 @@ function renderFons(){
       if(!summary)continue;
       if(fonsDisabled['__bondtrack__'+row.characterId])continue;
       const charName=(BOND_CHARACTER_DB.find(ch=>ch.id===row.characterId)||{}).name||row.characterId;
-      todayItems.push({name:`Gifts for ${charName}`,amount:-(summary.dailyFonsCost[0]||0)});
+      const todayCost=summary.dailyFonsCost[0]||0;
+      todayItems.push({name:`Gifts for ${charName}`,amount:-todayCost,coveredByStock:todayCost===0});
     }
     if(todayItems.length===0){
       todayWidgetEl.innerHTML=`<div class="fons-widget-title">Available Today</div><div class="fons-widget-note">Nothing scheduled today.</div>`;
     } else {
       const todayTotal=todayItems.reduce((t,i)=>t+i.amount,0);
-      const rows2=todayItems.map(i=>`<div class="fons-widget-stat-row"><span>${i.name}</span><b style="${i.amount<0?'color:var(--danger)':'color:var(--text)'}">${fmtSigned(i.amount,false)}</b></div>`).join('');
+      const rows2=todayItems.map(i=>`<div class="fons-widget-stat-row"><span>${i.name}</span><b style="${i.coveredByStock?'color:var(--muted)':i.amount<0?'color:var(--danger)':'color:var(--text)'}">${i.coveredByStock?'In Stock':fmtSigned(i.amount,false)}</b></div>`).join('');
       todayWidgetEl.innerHTML=`<div class="fons-widget-title">Available Today</div>
         <div class="fons-summary-val" style="color:${todayTotal<0?'var(--danger)':'var(--accent)'}">${fmtSigned(todayTotal,false)}</div>
         <div class="fons-widget-stat-rows" style="margin-top:10px">${rows2}</div>`;
