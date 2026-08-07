@@ -83,6 +83,7 @@ a { color: inherit; }
 .fons-custom-add-wrap { display: flex; gap: 8px; flex-wrap: wrap; }
 .fons-custom-add-btn { background: var(--surface); border: 1px dashed var(--border); color: var(--muted); padding: 10px 16px; border-radius: 8px; cursor: pointer; font-size: 15px; font-family: inherit; text-align: left; transition: all .15s; }
 .fons-custom-add-btn:hover { border-color: var(--accent); color: var(--accent); }
+.fons-custom-add-btn:disabled { opacity: .4; cursor: not-allowed; border-color: var(--border); color: var(--muted); }
 .fons-summary-val { font-size: 27px; font-weight: 700; color: var(--accent); }
 .fons-body-grid { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 16px; align-items: start; }
 .fons-rail { display: flex; flex-direction: column; gap: 12px; }
@@ -143,15 +144,15 @@ a { color: inherit; }
 /* ── Bond Tracker ── */
 .fons-bondcad-sel, .fons-bondcad-num { background: var(--surface2); border: 1px solid var(--border); border-radius: 6px; color: var(--text); font-size: 14px; padding: 5px 7px; font-family: inherit; }
 .bond-tracker-wide-wrap { max-width: none; }
-.bond-tracker-tbl { table-layout: fixed; min-width: 900px; }
+.bond-tracker-tbl { table-layout: fixed; min-width: 1180px; }
 .bond-tracker-tbl td { vertical-align: middle; padding: 14px 20px; border-top: 1px solid var(--border); }
-.bond-tracker-tbl th:nth-child(1), .bond-tracker-tbl td:nth-child(1) { width: 11%; }
-.bond-tracker-tbl th:nth-child(2), .bond-tracker-tbl td:nth-child(2) { width: 8%; }
-.bond-tracker-tbl th:nth-child(3), .bond-tracker-tbl td:nth-child(3) { width: 13%; }
-.bond-tracker-tbl th:nth-child(4), .bond-tracker-tbl td:nth-child(4) { width: 35%; }
-.bond-tracker-tbl th:nth-child(5), .bond-tracker-tbl td:nth-child(5) { width: 11%; text-align: right; }
-.bond-tracker-tbl th:nth-child(6), .bond-tracker-tbl td:nth-child(6) { width: 14%; }
-.bond-tracker-tbl th:nth-child(7), .bond-tracker-tbl td:nth-child(7) { width: 8%; text-align: right; white-space: nowrap; }
+/* Rowspan'd character-level cells mean the item rows only carry 4 <td>s while the first row of
+   each block carries all 9 -- nth-child can't reliably target a "column" across both shapes, so
+   widths come from <colgroup> (order matches the <thead>) and alignment from explicit classes
+   instead of structural selectors. */
+.bond-tracker-tbl .bt-item-cost, .bond-tracker-tbl .bond-tracker-est-fons { text-align: right; }
+.bond-tracker-name-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.bond-tracker-name-actions { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
 .bond-tracker-progress-label { font-size: 13px; color: var(--text); display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
 .bond-tracker-progress-label span { color: var(--muted); white-space: nowrap; }
 .bond-tracker-gift-btn { background: var(--surface2); border: 1px solid var(--border); border-radius: 6px; color: var(--accent); font-size: 13px; font-weight: 600; padding: 6px 12px; cursor: pointer; font-family: inherit; margin-right: 6px; }
@@ -173,11 +174,10 @@ a { color: inherit; }
 .bt-field select, .bt-field input { max-width: 100%; }
 .bond-item-row .bt-field:first-child { flex: 1 1 100%; min-width: 0; }
 .bond-item-row .bt-field:first-child select { width: 100%; max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
-.bond-tracker-items-cell { font-size: 12.5px; line-height: 1.5; }
-.bt-item-line { margin-bottom: 6px; }
-.bt-item-line:last-child { margin-bottom: 0; }
-.bt-item-line b { color: var(--text); }
-.bt-item-sub { color: var(--muted); display: block; }
+.bond-tracker-tbl td.bt-item-name, .bond-tracker-tbl td.bt-item-location, .bond-tracker-tbl td.bt-item-cost, .bond-tracker-tbl td.bt-item-consuming, .bond-tracker-tbl td.bond-tracker-items-empty { font-size: 12.5px; }
+.bt-item-name { color: var(--text); font-weight: 600; }
+.bt-item-location { color: var(--muted); overflow-wrap: break-word; }
+.bond-tracker-items-empty { color: var(--muted); font-style: italic; }
 @keyframes bondFlash { 0% { background: rgba(232,184,75,.25); } 100% { background: transparent; } }
 .bond-tracker-flash td { animation: bondFlash 1.2s ease; }
 
@@ -335,8 +335,12 @@ a { color: inherit; }
     <div class="fons-warn" id="bond-tracker-gift-warn" style="display:none"></div>
     <div class="fons-wide-wrap bond-tracker-wide-wrap">
       <table class="fons-eff-tbl bond-tracker-tbl" id="bond-tracker-table">
-        <thead><tr><th style="text-align:left">Character</th><th style="text-align:left">Level</th><th style="text-align:left">Progress</th><th style="text-align:left">Gift Items</th><th style="text-align:right">Est. Fons Remaining</th><th style="text-align:left">Est. Time Remaining</th><th></th></tr></thead>
-        <tbody id="bond-tracker-body"></tbody>
+        <colgroup>
+          <col style="width:13%"><col style="width:6%"><col style="width:9%">
+          <col style="width:12%"><col style="width:19%"><col style="width:8%"><col style="width:11%">
+          <col style="width:10%"><col style="width:12%">
+        </colgroup>
+        <thead><tr><th style="text-align:left">Character</th><th style="text-align:left">Level</th><th style="text-align:left">Progress</th><th style="text-align:left">Item</th><th style="text-align:left">Location</th><th style="text-align:right">Fons Cost</th><th style="text-align:left">Consuming</th><th style="text-align:right">Est. Fons Remaining</th><th style="text-align:left">Est. Time Remaining</th></tr></thead>
       </table>
     </div>
     <div class="bond-tracker-add-row">
@@ -1229,20 +1233,6 @@ function bondTrackerFonsSummary(row){
   },0);
   return { fonsPerDay, instances: totalPerDay, daysUntilMax: proj.days };
 }
-// Inline "what's this character actually gifting" summary for the Bond Tracker table -- cost,
-// current owned stock, count/day, and (for default items) where to buy it -- so the player
-// doesn't have to open the edit modal just to see what's already configured.
-function bondTrackerItemsSummaryHtml(row){
-  if(!row.items.length) return '<span class="bond-tracker-checkline-note">No gift items</span>';
-  return row.items.map(item=>{
-    const resolved=bondItemResolve(row.characterId,item);
-    const owned=bondItemInventory[resolved.ref]||0;
-    const location=item.kind==='default'?((fonsBondLookup(row.characterId,item.tier)||{}).location||''):'';
-    const subParts=[`${fmtQty(resolved.costPerUnit)} Fons/ea`,`Owned ${fmtQty(owned)}`];
-    if(location)subParts.push(location);
-    return `<div class="bt-item-line"><b>${bgEsc(resolved.name)}</b> &times;${Math.max(0,item.countPerDay|0)}/day<span class="bt-item-sub">${bgEsc(subParts.join(' · '))}</span></div>`;
-  }).join('');
-}
 // Advances every tracked character's bond by one service-day's worth of their current plan,
 // for each reset boundary that passed since the app was last open. Characters are processed in
 // a stable (alphabetical) order and share one BOND_GLOBAL_GIFT_CAP-per-day budget across the
@@ -1287,21 +1277,30 @@ function bondTrackerModalRow(){ return bondTracker.find(r => r.characterId === b
 function bondTrackerDefaultItemOptions(characterId){
   return [200,400].map(t=>({tier:t,item:fonsBondLookup(characterId,t)})).filter(x=>x.item);
 }
+// Sum of countPerDay across every OTHER tracked character's saved items -- the roster-wide
+// budget this character's modal edits have to share, on top of their own BOND_GIFT_CAP/day.
+function bondTrackerOtherCharsGifts(characterId){
+  return bondTracker.reduce((t,r)=>r.characterId===characterId?t:t+r.items.reduce((s,i)=>s+Math.max(0,i.countPerDay|0),0),0);
+}
 function bondTrackerRenderModalItems(){
   const row=bondTrackerModalRow(); if(!row)return;
   const wrap=document.getElementById('bond-tracker-modal-items'); if(!wrap)return;
   const defaults=bondTrackerDefaultItemOptions(row.characterId);
+  const otherCharsGifts=bondTrackerOtherCharsGifts(row.characterId);
   wrap.innerHTML=bondTrackerModalItems.map((item,idx)=>{
     const isDefault=item.kind==='default';
     const pickVal=isDefault?String(item.tier):'custom';
     const defaultOptsHtml=defaults.map(d=>`<option value="${d.tier}"${pickVal===String(d.tier)?' selected':''}>${bgEsc(fonsBondModalTierLabel(row.characterId,d.tier))}</option>`).join('');
     const resolved=bondItemResolve(row.characterId,item);
     const owned=bondItemInventory[resolved.ref]||0;
-    // Per-item count/day is capped not just at BOND_GIFT_CAP, but at what's left of that cap
-    // after every OTHER item on this character -- otherwise each item's own max="3" lets the
-    // player set every item to 3 and blow past the character's real 3/day total.
-    const othersTotal=bondTrackerModalItems.reduce((t,it,i)=>i===idx?t:t+Math.max(0,it.countPerDay|0),0);
-    const maxForThis=Math.max(0,BOND_GIFT_CAP-othersTotal);
+    // Per-item count/day is capped by whichever is tighter: what's left of this character's own
+    // 3/day (BOND_GIFT_CAP) after every OTHER item on this character, or what's left of the
+    // roster-wide 10/day (BOND_GLOBAL_GIFT_CAP) after every other character's gifts plus this
+    // character's own other items -- otherwise you could set every item to 3 and blow past either cap.
+    const othersInRowTotal=bondTrackerModalItems.reduce((t,it,i)=>i===idx?t:t+Math.max(0,it.countPerDay|0),0);
+    const rowRemaining=Math.max(0,BOND_GIFT_CAP-othersInRowTotal);
+    const globalRemaining=Math.max(0,BOND_GLOBAL_GIFT_CAP-otherCharsGifts-othersInRowTotal);
+    const maxForThis=Math.min(rowRemaining,globalRemaining);
     const customFieldsHtml=!isDefault?`
         <div class="bt-field"><label>Item Name</label><input class="fons-bondcad-num" data-item-field="name" type="text" value="${bgEsc(item.name||'')}" style="width:120px;text-align:left"></div>
         <div class="bt-field"><label>Fons Cost</label><input class="fons-bondcad-num" data-item-field="cost" type="number" min="0" value="${item.costPerUnit||0}" style="width:80px"></div>
@@ -1319,10 +1318,17 @@ function bondTrackerRenderModalItems(){
   }).join('') || `<div class="bond-tracker-checkline-note">No gift items yet — add one below.</div>`;
 
   const total=bondTrackerModalItems.reduce((t,i)=>t+Math.max(0,i.countPerDay|0),0);
+  const globalTotal=otherCharsGifts+total;
   const totalEl=document.getElementById('bond-tracker-modal-items-total');
   if(totalEl){
-    totalEl.textContent=`${total} / ${BOND_GIFT_CAP} per day`;
-    totalEl.style.color=total>BOND_GIFT_CAP?'var(--danger)':'var(--muted)';
+    totalEl.textContent=`${total} / ${BOND_GIFT_CAP} per day · ${globalTotal} / ${BOND_GLOBAL_GIFT_CAP} roster-wide`;
+    totalEl.style.color=(total>BOND_GIFT_CAP||globalTotal>BOND_GLOBAL_GIFT_CAP)?'var(--danger)':'var(--muted)';
+  }
+  const addBtn=document.getElementById('bond-tracker-modal-additem');
+  if(addBtn){
+    const atGlobalCap=globalTotal>=BOND_GLOBAL_GIFT_CAP;
+    addBtn.disabled=atGlobalCap;
+    addBtn.title=atGlobalCap?`Roster-wide gift cap (${BOND_GLOBAL_GIFT_CAP}/day) already reached -- free up a gift elsewhere first.`:'';
   }
 
   wrap.querySelectorAll('[data-item-field]').forEach(el=>{
@@ -1344,9 +1350,10 @@ function bondTrackerRenderModalItems(){
       if(field==='cost'){ item.costPerUnit=Math.max(0,parseInt(el.value)||0); }
       if(field==='bondValue'){ item.bondValue=Math.max(1,parseInt(el.value)||1); }
       if(field==='count'){
-        const othersTotal=bondTrackerModalItems.reduce((t,it,i)=>i===idx?t:t+Math.max(0,it.countPerDay|0),0);
-        const maxForThis=Math.max(0,BOND_GIFT_CAP-othersTotal);
-        item.countPerDay=Math.max(0,Math.min(maxForThis,parseInt(el.value)||0));
+        const othersInRowTotal=bondTrackerModalItems.reduce((t,it,i)=>i===idx?t:t+Math.max(0,it.countPerDay|0),0);
+        const rowRemaining=Math.max(0,BOND_GIFT_CAP-othersInRowTotal);
+        const globalRemaining=Math.max(0,BOND_GLOBAL_GIFT_CAP-otherCharsGifts-othersInRowTotal);
+        item.countPerDay=Math.max(0,Math.min(rowRemaining,globalRemaining,parseInt(el.value)||0));
         bondTrackerRenderModalItems();
         return;
       }
@@ -1356,6 +1363,8 @@ function bondTrackerRenderModalItems(){
 }
 function bondTrackerAddModalItem(){
   const row=bondTrackerModalRow(); if(!row)return;
+  const globalTotal=bondTrackerOtherCharsGifts(row.characterId)+bondTrackerModalItems.reduce((t,i)=>t+Math.max(0,i.countPerDay|0),0);
+  if(globalTotal>=BOND_GLOBAL_GIFT_CAP)return; // roster-wide cap already hit -- nothing more to add
   const defaults=bondTrackerDefaultItemOptions(row.characterId);
   bondTrackerModalItems.push(defaults.length ? {kind:'default',tier:defaults[0].tier,countPerDay:0} : {kind:'custom',ref:'',name:'',costPerUnit:0,bondValue:200,countPerDay:0});
   bondTrackerRenderModalItems();
@@ -1398,9 +1407,10 @@ function bondTrackerSaveModal(){
 
 function renderBondTracker(){
   bondTrackerProcessCatchup();
-  const body = document.getElementById('bond-tracker-body');
+  const table = document.getElementById('bond-tracker-table');
   const addSel = document.getElementById('bond-tracker-add-sel');
-  if (!body || !addSel) return;
+  if (!table || !addSel) return;
+  table.querySelectorAll('tbody').forEach(tb => tb.remove());
 
   const zeroSel=document.getElementById('bond-tracker-zero-rank');
   if(zeroSel && document.activeElement!==zeroSel) zeroSel.value=String(zeroLifeSkillRank);
@@ -1423,7 +1433,7 @@ function renderBondTracker(){
   addSel.disabled = !available.length;
 
   if (!bondTracker.length) {
-    body.innerHTML = `<tr><td colspan="7" class="fons-tbl-note" style="padding:20px 16px">No characters tracked yet — pick one below and add it.</td></tr>`;
+    table.insertAdjacentHTML('beforeend', `<tbody><tr><td colspan="9" class="fons-tbl-note" style="padding:20px 16px">No characters tracked yet — pick one below and add it.</td></tr></tbody>`);
     return;
   }
 
@@ -1438,7 +1448,11 @@ function renderBondTracker(){
   const activeRows = bondTracker.filter(isActive).sort(byName);
   const restRows = bondTracker.filter(r => !isActive(r)).sort(byName);
 
-  const renderRow = row => {
+  // Item / Location / Fons Cost / Consuming are real table columns, so a character with multiple
+  // items needs multiple <tr>s -- one per tbody per character (mirrors Bond Guide's rowspan
+  // pattern), with the character-level columns (name, level, progress, est. remaining) rowspan'd
+  // down across all of that character's item rows.
+  const renderBlock = row => {
     const db = (typeof CHARACTER_DB !== 'undefined' ? CHARACTER_DB : []).find(c => c.id === row.characterId);
     const name = db ? db.name : row.characterId;
     const maxed = row.level >= BOND_MAX_LEVEL;
@@ -1456,33 +1470,57 @@ function renderBondTracker(){
       timeLeftHtml=`<div class="bond-tracker-est">${dateLabel} <span>&middot; ${proj.days}d</span></div>`;
     }
 
-    return `<tr data-bt-char="${row.characterId}">
-      <td>${bgEsc(name)}${row.dating?'<span class="bond-tracker-dating-badge">Dating</span>':''}</td>
-      <td><select class="fons-bondcad-sel" data-bt-field="level" data-bt-char="${row.characterId}">${lvlOpts}</select></td>
-      <td>
-        <div class="bond-tracker-progress-label">${maxed ? 'Maxed' : `<input class="fons-bondcad-num" style="width:64px" type="number" min="0" max="${needed}" value="${row.exp}" data-bt-field="exp" data-bt-char="${row.characterId}"> <span>/ ${needed}</span>`}</div>
+    const rowspan = Math.max(1, row.items.length);
+    const charCellsHtml = `
+      <td rowspan="${rowspan}">
+        <div class="bond-tracker-name-row">
+          <span>${bgEsc(name)}${row.dating?'<span class="bond-tracker-dating-badge">Dating</span>':''}</span>
+          <span class="bond-tracker-name-actions"><button class="fons-edit-btn" data-bt-edit="${row.characterId}" title="Edit bond tracking">&#9998;</button><button class="fons-del-btn" data-bt-del="${row.characterId}" title="Remove">&#10005;</button></span>
+        </div>
       </td>
-      <td class="bond-tracker-items-cell">${bondTrackerItemsSummaryHtml(row)}</td>
-      <td>${fonsLeftHtml}</td>
-      <td>${timeLeftHtml}</td>
-      <td><button class="fons-edit-btn" data-bt-edit="${row.characterId}" title="Edit bond tracking">&#9998;</button> <button class="fons-del-btn" data-bt-del="${row.characterId}" title="Remove">&#10005;</button></td>
-    </tr>`;
+      <td rowspan="${rowspan}"><select class="fons-bondcad-sel" data-bt-field="level" data-bt-char="${row.characterId}">${lvlOpts}</select></td>
+      <td rowspan="${rowspan}">
+        <div class="bond-tracker-progress-label">${maxed ? 'Maxed' : `<input class="fons-bondcad-num" style="width:64px" type="number" min="0" max="${needed}" value="${row.exp}" data-bt-field="exp" data-bt-char="${row.characterId}"> <span>/ ${needed}</span>`}</div>
+      </td>`;
+    const tailCellsHtml = `<td rowspan="${rowspan}" class="bond-tracker-est-fons">${fonsLeftHtml}</td><td rowspan="${rowspan}">${timeLeftHtml}</td>`;
+
+    let bodyRowsHtml;
+    if (!row.items.length) {
+      bodyRowsHtml = `<tr data-bt-char="${row.characterId}">${charCellsHtml}<td colspan="4" class="bond-tracker-items-empty">No gift items</td>${tailCellsHtml}</tr>`;
+    } else {
+      bodyRowsHtml = row.items.map((item, i) => {
+        const resolved = bondItemResolve(row.characterId, item);
+        const owned = bondItemInventory[resolved.ref] || 0;
+        const location = item.kind==='default' ? ((fonsBondLookup(row.characterId, item.tier)||{}).location || '') : '';
+        const itemCellsHtml = `
+          <td class="bt-item-name">${bgEsc(resolved.name)}</td>
+          <td class="bt-item-location">${location?bgEsc(location):'&mdash;'}</td>
+          <td class="bt-item-cost">${fmtQty(resolved.costPerUnit)}</td>
+          <td class="bt-item-consuming">${Math.max(0,item.countPerDay|0)}/day &middot; Owned ${fmtQty(owned)}</td>`;
+        return i===0
+          ? `<tr data-bt-char="${row.characterId}">${charCellsHtml}${itemCellsHtml}${tailCellsHtml}</tr>`
+          : `<tr>${itemCellsHtml}</tr>`;
+      }).join('');
+    }
+    return `<tbody class="bond-tracker-block">${bodyRowsHtml}</tbody>`;
   };
 
-  body.innerHTML = activeRows.map(renderRow).join('')
-    + (activeRows.length && restRows.length ? `<tr class="fons-tbl-subhdr"><td class="fons-subhdr-cell" colspan="7">Inactive / Maxed</td></tr>` : '')
-    + restRows.map(renderRow).join('');
+  const dividerHtml = `<tbody><tr class="fons-tbl-subhdr"><td class="fons-subhdr-cell" colspan="9">Inactive / Maxed</td></tr></tbody>`;
+  const html = activeRows.map(renderBlock).join('')
+    + (activeRows.length && restRows.length ? dividerHtml : '')
+    + restRows.map(renderBlock).join('');
+  table.insertAdjacentHTML('beforeend', html);
 
-  body.querySelectorAll('[data-bt-field="level"]').forEach(el => {
+  table.querySelectorAll('[data-bt-field="level"]').forEach(el => {
     el.addEventListener('change', () => bondTrackerSetLevel(el.dataset.btChar, el.value));
   });
-  body.querySelectorAll('[data-bt-field="exp"]').forEach(el => {
+  table.querySelectorAll('[data-bt-field="exp"]').forEach(el => {
     el.addEventListener('change', () => bondTrackerSetExp(el.dataset.btChar, el.value));
   });
-  body.querySelectorAll('[data-bt-edit]').forEach(el => {
+  table.querySelectorAll('[data-bt-edit]').forEach(el => {
     el.addEventListener('click', () => bondTrackerOpenModal(el.dataset.btEdit));
   });
-  body.querySelectorAll('[data-bt-del]').forEach(el => {
+  table.querySelectorAll('[data-bt-del]').forEach(el => {
     el.addEventListener('click', () => bondTrackerRemove(el.dataset.btDel));
   });
 }
