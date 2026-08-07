@@ -32,6 +32,7 @@ a { color: inherit; }
 .nav-item:hover { color: var(--text); background: var(--surface2); }
 .nav-item.active { color: var(--accent); background: rgba(232,184,75,.06); border-left-color: var(--accent); }
 .nav-item svg { width: 20px; height: 20px; flex-shrink: 0; stroke: currentColor; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.nav-separator { height: 1px; background: var(--border); margin: 8px 22px; }
 .sidebar-footer { padding: 14px 16px; border-top: 1px solid var(--border); display: flex; gap: 8px; align-items: center; }
 .sidebar-credit { font-size: 12px; color: var(--muted); text-align: center; padding: 6px 0 10px; opacity: .55; }
 .btn-sm { background: var(--surface2); border: 1px solid var(--border); border-radius: 6px; color: var(--muted); font-size: 13px; font-weight: 500; letter-spacing: .5px; text-transform: uppercase; padding: 7px 11px; cursor: pointer; transition: all .15s; text-align: center; }
@@ -229,7 +230,8 @@ a { color: inherit; }
   .sidebar-logo { --logo-ring: 32px; padding: 0; border-bottom: none; gap: 8px; }
   .sidebar-logo-word b { font-size: 12px; }
   .sidebar-logo-word i { font-size: 8px; }
-  .sidebar-nav { flex: 0 0 auto; display: flex; padding: 0; gap: 2px; }
+  .sidebar-nav { flex: 0 0 auto; display: flex; align-items: center; padding: 0; gap: 2px; }
+  .nav-separator { width: 1px; height: 22px; margin: 0 6px; }
   .nav-item { padding: 8px 12px; font-size: 14px; border-left: none; border-radius: 6px; gap: 8px; }
   .nav-item.active { border-left: none; }
   .nav-item svg { width: 16px; height: 16px; }
@@ -261,8 +263,9 @@ a { color: inherit; }
   </div>
   <div class="sidebar-nav">
     <div class="nav-item active" data-page="fons" title="Fons Management"><svg viewBox="0 0 24 24"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg><span>Fons Management</span></div>
-    <div class="nav-item" data-page="bond-guide" title="Bond Guide"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg><span>Bond Guide</span></div>
-    <div class="nav-item" data-page="bond-tracker" title="Bond Tracker"><svg viewBox="0 0 24 24"><path d="M12 20V10M18 20V4M6 20v-6"/></svg><span>Bond Tracker</span></div>
+    <div class="nav-item" data-page="bond-tracker" title="Bond Management"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg><span>Bond Management</span></div>
+    <div class="nav-separator"></div>
+    <div class="nav-item" data-page="bond-guide" title="Bond Chart"><svg viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg><span>Bond Chart</span></div>
   </div>
   <div class="sidebar-footer">
     <span class="save-indicator" id="save-indicator">&#10003;</span>
@@ -308,24 +311,14 @@ a { color: inherit; }
       </div>
     </div>
     <div class="fons-custom-add-wrap" style="margin-top:12px">
-      <button class="fons-custom-add-btn" onclick="fonsGoAddBondCharacter()">+ Add Character to Bond Tracking</button>
+      <button class="fons-custom-add-btn" onclick="fonsGoAddBondCharacter()">+ Add Character to Bond Management</button>
       <button class="fons-custom-add-btn" onclick="fonsAddCustom()">+ Add custom income / expense</button>
-    </div>
-  </div>
-
-  <!-- Bond Guide -->
-  <div class="page" id="page-bond-guide">
-    <div class="page-header"><div class="page-title">Bond Guide</div></div>
-    <div class="fons-wide-wrap">
-      <table class="fons-eff-tbl bond-guide-tbl" id="bond-guide-table">
-        <thead><tr><th>Character</th><th>Bond</th><th>Item</th><th>Location</th><th>Cost / Unit</th><th>Total Fons</th></tr></thead>
-      </table>
     </div>
   </div>
 
   <!-- Bond Tracker -->
   <div class="page" id="page-bond-tracker">
-    <div class="page-header"><div class="page-title">Bond Tracker</div></div>
+    <div class="page-header"><div class="page-title">Bond Management</div></div>
     <div class="bond-tracker-toolbar">
       <div class="fons-chip-wrap">
         <span class="fons-chip-label">Zero's Life Skill</span>
@@ -368,6 +361,16 @@ a { color: inherit; }
         <button type="button" class="fons-modal-btn" id="bond-tracker-modal-cancel">Cancel</button>
         <button type="button" class="fons-modal-btn primary" id="bond-tracker-modal-save">Save</button>
       </div>
+    </div>
+  </div>
+
+  <!-- Bond Chart -- static reference table, kept below the app's active-tracking pages -->
+  <div class="page" id="page-bond-guide">
+    <div class="page-header"><div class="page-title">Bond Chart</div></div>
+    <div class="fons-wide-wrap">
+      <table class="fons-eff-tbl bond-guide-tbl" id="bond-guide-table">
+        <thead><tr><th>Character</th><th>Bond</th><th>Item</th><th>Location</th><th>Cost / Unit</th><th>Total Fons</th></tr></thead>
+      </table>
     </div>
   </div>
 
@@ -825,7 +828,7 @@ function renderFons(){
       const valHtml=effectiveTarget?fmtSigned(enabled?cTotal:0,false):'—';
       const charName=(BOND_CHARACTER_DB.find(ch=>ch.id===row.characterId)||{}).name||row.characterId;
       rows+=`<tr class="${dc}" data-fons-id="${key}">
-        <td><div class="fons-custom-actions"><input type="checkbox" class="fons-cb" data-fons-toggle="${key}"${enabled?' checked':''}><button class="fons-edit-btn" data-bond-goto="${row.characterId}" title="Manage in Bond Tracker">&#8599;</button></div></td>
+        <td><div class="fons-custom-actions"><input type="checkbox" class="fons-cb" data-fons-toggle="${key}"${enabled?' checked':''}><button class="fons-edit-btn" data-bond-goto="${row.characterId}" title="Manage in Bond Management">&#8599;</button></div></td>
         <td><div class="fons-bond-summary"><b>${bgEsc(charName)}</b></div></td>
         <td>${fonsCadenceChipHtml('bond')}</td>
         <td class="fons-runs">${effectiveTarget?cRuns:'—'}</td>
