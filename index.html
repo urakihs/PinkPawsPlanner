@@ -684,18 +684,19 @@ function renderFons(){
   if(hasGoal){
     const CAP=999;
     const todayIdx=serviceDayIndex(activityNow());
-    const todayAnchor=serviceDateStr(todayIdx);
     const simSources=fonsEffectiveSources().filter(s=>s.fpr!==0&&!fonsDisabled[s.id])
-      .concat(fonsCustomRows.filter(c=>c.rec&&c.fpr!==0&&!fonsDisabled['__custom__'+c.id]).map(c=>({id:'__custom__'+c.id,name:c.name,fpr:c.fpr,rec:c.rec})))
-      .concat(bondTracker.map(row=>{
-        const summary=bondTrackerFonsSummary(row);
-        if(!summary)return null;
-        const key='__bondtrack__'+row.characterId;
-        if(fonsDisabled[key])return null;
-        return {id:key,name:'',fpr:-summary.fonsPerDay,rec:{type:'days',interval:1,anchor:todayAnchor},bondCap:summary.fonsPerDay*summary.daysUntilMax,bondSpent:0};
-      }).filter(Boolean));
+      .concat(fonsCustomRows.filter(c=>c.rec&&c.fpr!==0&&!fonsDisabled['__custom__'+c.id]).map(c=>({id:'__custom__'+c.id,name:c.name,fpr:c.fpr,rec:c.rec})));
+    // Bond gifts are simulated separately via each row's day-by-day dailyFonsCost (index 0 =
+    // today, matched below by d=1 = tomorrow) so owned stock is burned down before Fons is spent,
+    // instead of a flat rate applied uniformly across the whole simulation window.
+    const bondDailyCosts=bondTracker.map(row=>{
+      const summary=bondTrackerFonsSummary(row);
+      if(!summary)return null;
+      if(fonsDisabled['__bondtrack__'+row.characterId])return null;
+      return summary.dailyFonsCost;
+    }).filter(Boolean);
     const oneTime=gatherOneTimeExpenses();
-    const hasPendingExpense=oneTime.some(e=>e<0)||simSources.some(s=>s.fpr<0);
+    const hasPendingExpense=oneTime.some(e=>e<0)||simSources.some(s=>s.fpr<0)||bondDailyCosts.some(dc=>dc.some(v=>v>0));
     let balance=currentFons;
     if(balance>=fonsTargetGoal&&!hasPendingExpense){
       goalDays=-1;
@@ -706,15 +707,12 @@ function renderFons(){
         const idx=todayIdx+d;
         for(const s of simSources){
           if(!isOccurrence(resolveRec(s.rec,PATCH_ANCHOR,PATCH_LENGTH_DAYS),idx))continue;
-          let amt=s.fpr;
-          if(s.bondCap!==undefined){
-            const remaining=Math.max(0,s.bondCap-s.bondSpent);
-            const use=Math.min(Math.abs(s.fpr),remaining);
-            amt=-use;
-            s.bondSpent+=use;
-            if(use<=0)continue;
-          }
+          const amt=s.fpr;
           balance+=amt;if(amt>0)goalSimIncome+=amt;else if(amt<0)goalSimExpend+=amt;
+        }
+        for(const dc of bondDailyCosts){
+          const cost=dc[d]||0;
+          if(cost>0){ balance-=cost; goalSimExpend-=cost; }
         }
         if(d===1){
           for(const e of oneTime){
@@ -793,7 +791,9 @@ function renderFons(){
         rawRuns=Math.max(0,tEnd-t0);
       }
       const cRuns=Math.min(rawRuns,summary.daysUntilMax);
-      const cTotal=-(cRuns*summary.fonsPerDay);
+      // dailyFonsCost[0] is today (shown separately in the Available Today widget); the window
+      // shown here runs from tomorrow through the target date, i.e. indices [1, rawRuns].
+      const cTotal=-summary.dailyFonsCost.slice(1,1+rawRuns).reduce((a,b)=>a+b,0);
       if(enabled)grandTotal+=cTotal;
       const dc=enabled?'':'fons-row-disabled';
       const valHtml=effectiveTarget?fmtSigned(enabled?cTotal:0,false):'—';
@@ -879,7 +879,7 @@ function renderFons(){
       if(!summary)continue;
       if(fonsDisabled['__bondtrack__'+row.characterId])continue;
       const charName=(BOND_CHARACTER_DB.find(ch=>ch.id===row.characterId)||{}).name||row.characterId;
-      todayItems.push({name:`Gifts for ${charName}`,amount:-summary.fonsPerDay});
+      todayItems.push({name:`Gifts for ${charName}`,amount:-(summary.dailyFonsCost[0]||0)});
     }
     if(todayItems.length===0){
       todayWidgetEl.innerHTML=`<div class="fons-widget-title">Available Today</div><div class="fons-widget-note">Nothing scheduled today.</div>`;
@@ -1160,7 +1160,7 @@ function bondTrackerConsumeItem(resolved){
 // just against local copies instead of the real row/inventory, and without the roster-wide
 // 10-gifts/day cap (a single character's own plan, assuming nothing else contends for it).
 function bondTrackerProject(row){
-  if (row.level >= BOND_MAX_LEVEL) return { feasible:true, maxed:true, days:0, fonsNeeded:0 };
+  if (row.level >= BOND_MAX_LEVEL) return { feasible:true, maxed:true, days:0, fonsNeeded:0, dailyFonsCost:[] };
   const totalPerDay = row.items.reduce((t,i)=>t+Math.max(0,i.countPerDay|0),0);
   const hasPlan = totalPerDay>0 || row.dating;
   if (!hasPlan) return { feasible:false, maxed:false };
@@ -1168,27 +1168,32 @@ function bondTrackerProject(row){
   const owned = {};
   resolvedItems.forEach(i=>{ if(!(i.ref in owned)) owned[i.ref]=bondItemInventory[i.ref]||0; });
   let level=row.level, exp=row.exp, fonsNeeded=0, days=0;
+  const dailyFonsCost=[]; // per-day $ actually spent, index 0 = today -- owned stock is burned down before Fons is touched
   const CAP=999;
   while (level < BOND_MAX_LEVEL && days < CAP){
     days++;
+    let dayFons=0;
     for (const item of resolvedItems){
       for (let g=0; g<item.countPerDay && level<BOND_MAX_LEVEL; g++){
         const eff=bondEffGiftBond(item.bondValue,level,zeroLifeSkillRank);
         const r=bondAdvance(level,exp,eff); level=r.level; exp=r.exp;
-        if (owned[item.ref]>0) owned[item.ref]--; else fonsNeeded+=item.costPerUnit;
+        if (owned[item.ref]>0) owned[item.ref]--; else { fonsNeeded+=item.costPerUnit; dayFons+=item.costPerUnit; }
       }
     }
     if (row.dating && level<BOND_MAX_LEVEL && level>=BOND_DATE_GATE_LEVEL){
       const r=bondAdvance(level,exp,BOND_DATE_BOND); level=r.level; exp=r.exp;
     }
+    dailyFonsCost.push(dayFons);
   }
   if (level<BOND_MAX_LEVEL) return { feasible:false, maxed:false }; // e.g. dating-only, stuck below the Lv4 gate
-  return { feasible:true, maxed:false, days, fonsNeeded };
+  return { feasible:true, maxed:false, days, fonsNeeded, dailyFonsCost };
 }
 // Fons Management's per-character summary row: a STEADY-STATE daily Fons cost (i.e. assuming
-// current owned stock is already exhausted, not blended with the free days it actually covers --
-// see BOND_TRACKER discussion), the daily instance count, and how many days out this character's
-// recurring cost line should be projected before it drops to zero (they've hit Level 10).
+// owned stock is already exhausted -- used as a display-only rate, e.g. the "per run" column),
+// the daily instance count, how many days out this character's recurring cost line should be
+// projected before it drops to zero (they've hit Level 10), and dailyFonsCost -- the actual
+// day-by-day $ spend (index 0 = today), which burns owned stock down to zero before any Fons
+// is counted, so days fully covered by inventory show as 0.
 // Returns null when there's nothing to show (no active items, already maxed, or an infeasible
 // plan like dating-only below the gate level).
 function bondTrackerFonsSummary(row){
@@ -1200,7 +1205,7 @@ function bondTrackerFonsSummary(row){
     const resolved=bondItemResolve(row.characterId,i);
     return t+Math.max(0,i.countPerDay|0)*resolved.costPerUnit;
   },0);
-  return { fonsPerDay, instances: totalPerDay, daysUntilMax: proj.days };
+  return { fonsPerDay, instances: totalPerDay, daysUntilMax: proj.days, dailyFonsCost: proj.dailyFonsCost };
 }
 // Advances every tracked character's bond by one service-day's worth of their current plan,
 // for each reset boundary that passed since the app was last open. Characters are processed in
