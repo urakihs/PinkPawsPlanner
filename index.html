@@ -185,6 +185,8 @@ table.bond-tracker-tbl { table-layout: fixed; min-width: 1260px; }
 .bt-mini-field { display: flex; flex-direction: column; gap: 3px; }
 .bt-mini-field label { font-size: 9.5px; color: var(--muted); text-transform: uppercase; letter-spacing: .4px; font-weight: 600; white-space: nowrap; }
 .bt-mini-field .fons-bondcad-num { width: 46px; }
+.bt-mini-field-gifts label { white-space: normal; max-width: 68px; line-height: 1.25; }
+.bt-mini-field-gifts .fons-bondcad-num { width: 68px; }
 .bt-remove-item-btn { background: none; border: none; color: var(--muted); cursor: pointer; font-size: 13px; padding: 0 0 6px; line-height: 1; align-self: flex-end; }
 .bt-remove-item-btn:hover { color: var(--danger); }
 tr.bt-add-item-row td { border-top: none; padding-top: 0; padding-bottom: 14px; }
@@ -1339,9 +1341,11 @@ function renderBondTracker(){
     return na.localeCompare(nb);
   };
   // Characters with an active plan (gift items and/or dating, not yet maxed) sort to the top;
-  // maxed-out or plan-less characters drop to their own section below a divider.
+  // maxed-out or plan-less characters drop to their own section below a divider. Within the
+  // active section, whoever's currently being dated (at most one row roster-wide) always leads --
+  // dating doesn't require any gift items to count as an active plan.
   const isActive = row => row.level < BOND_MAX_LEVEL && (row.dating || row.items.some(i => (i.countPerDay|0) > 0));
-  const activeRows = bondTracker.filter(isActive).sort(byName);
+  const activeRows = bondTracker.filter(isActive).sort((a, b) => (b.dating - a.dating) || byName(a, b));
   const restRows = bondTracker.filter(r => !isActive(r)).sort(byName);
 
   // Item / Location / Fons Cost / Consuming are real table columns, so a character with multiple
@@ -1419,7 +1423,7 @@ function renderBondTracker(){
           <td class="bt-item-cost">${costCellHtml}</td>
           <td class="bt-item-consuming">
             <div class="bt-consuming-fields">
-              <div class="bt-mini-field"><label>Day</label><input class="fons-bondcad-num" type="text" inputmode="numeric" value="${item.countPerDay||0}" data-item-field="count" data-bt-char="${row.characterId}" data-item-idx="${i}"></div>
+              <div class="bt-mini-field bt-mini-field-gifts"><label>Gifts Per Day</label><input class="fons-bondcad-num" type="text" inputmode="numeric" value="${item.countPerDay||0}" data-item-field="count" data-bt-char="${row.characterId}" data-item-idx="${i}"></div>
               <div class="bt-mini-field"><label>Owned</label><input class="fons-bondcad-num" type="text" inputmode="numeric" value="${owned}" data-item-field="owned" data-bt-char="${row.characterId}" data-item-idx="${i}"></div>
               <button type="button" class="bt-remove-item-btn" data-item-field="remove" data-bt-char="${row.characterId}" data-item-idx="${i}" title="Remove item">&#10005;</button>
             </div>
