@@ -156,7 +156,7 @@ a { color: inherit; }
 .bond-tracker-toolbar { display: flex; gap: 12px; align-items: center; margin-bottom: 16px; }
 .bond-tracker-est { font-size: 13px; color: var(--text); white-space: nowrap; }
 .bond-tracker-est span { color: var(--muted); }
-.bond-tracker-tbl td.bt-item-name, .bond-tracker-tbl td.bt-item-location, .bond-tracker-tbl td.bt-item-cost, .bond-tracker-tbl td.bt-item-consuming, .bond-tracker-tbl td.bond-tracker-items-empty { font-size: 12.5px; }
+.bond-tracker-tbl td.bt-item-name, .bond-tracker-tbl td.bt-item-location, .bond-tracker-tbl td.bt-item-consuming, .bond-tracker-tbl td.bond-tracker-items-empty { font-size: 12.5px; }
 .bt-item-name { color: var(--text); font-weight: 600; }
 .bt-item-location { color: var(--muted); overflow-wrap: break-word; }
 .bond-tracker-items-empty { color: var(--muted); font-style: italic; }
@@ -179,8 +179,8 @@ a { color: inherit; }
 .bt-bondvalue-field { display: flex; flex-direction: column; gap: 3px; }
 .bt-bondvalue-field label { font-size: 9.5px; color: var(--muted); text-transform: uppercase; letter-spacing: .4px; font-weight: 600; }
 .bt-bondvalue-field .fons-bondcad-num { width: 68px; }
-.bt-cost-input { width: 76px; text-align: right; }
-.bt-cost-readonly { color: var(--text); text-align: right; display: block; }
+.bt-cost-input { width: 84px; text-align: right; font-size: 16px; }
+.bt-cost-readonly { color: var(--text); text-align: right; display: block; font-size: 16px; }
 .bt-consuming-fields { display: flex; align-items: flex-end; gap: 10px; }
 .bt-mini-field { display: flex; flex-direction: column; gap: 3px; }
 .bt-mini-field label { font-size: 9.5px; color: var(--muted); text-transform: uppercase; letter-spacing: .4px; font-weight: 600; white-space: nowrap; }
@@ -1383,10 +1383,13 @@ function renderBondTracker(){
       </td>
       <td rowspan="${rowspan}"><select class="fons-bondcad-sel" data-bt-field="level" data-bt-char="${row.characterId}">${lvlOpts}</select></td>
       <td rowspan="${rowspan}">
-        <div class="bond-tracker-progress-frac">${maxed ? 'Maxed' : `<input class="fons-bondcad-num" type="number" min="0" max="${needed}" value="${row.exp}" data-bt-field="exp" data-bt-char="${row.characterId}"><div class="frac-line"></div><span class="frac-denom">${needed}</span>`}</div>
+        <div class="bond-tracker-progress-frac">${maxed ? 'Maxed' : `<input class="fons-bondcad-num" type="text" inputmode="numeric" value="${row.exp}" data-bt-field="exp" data-bt-char="${row.characterId}"><div class="frac-line"></div><span class="frac-denom">${needed}</span>`}</div>
       </td>`;
     const tailCellsHtml = `<td rowspan="${rowspan}" class="bond-tracker-est-fons">${fonsLeftHtml}</td><td rowspan="${rowspan}">${timeLeftHtml}</td>`;
-    const addItemRowHtml = `<tr class="bt-add-item-row"><td></td><td></td><td></td><td colspan="4"><button type="button" class="fons-custom-add-btn" data-bt-additem="${row.characterId}">+ Add gift item</button></td><td></td><td></td></tr>`;
+    const globalTotalForRow = bondTrackerOtherCharsGifts(row.characterId) + row.items.reduce((t,i)=>t+Math.max(0,i.countPerDay|0),0);
+    const atGlobalCap = globalTotalForRow >= BOND_GLOBAL_GIFT_CAP;
+    const addItemTitle = atGlobalCap ? `Roster-wide gift cap (${BOND_GLOBAL_GIFT_CAP}/day) already reached — free up a gift elsewhere first.` : '';
+    const addItemRowHtml = `<tr class="bt-add-item-row"><td></td><td></td><td></td><td colspan="4"><button type="button" class="fons-custom-add-btn" data-bt-additem="${row.characterId}"${atGlobalCap?' disabled':''} title="${addItemTitle}">+ Add gift item</button></td><td></td><td></td></tr>`;
 
     let bodyRowsHtml;
     if (!row.items.length) {
@@ -1406,18 +1409,18 @@ function renderBondTracker(){
         </select>${!isDefault?`<input class="fons-bondcad-num bt-item-custom-name" type="text" value="${bgEsc(item.name||'')}" placeholder="Item name" data-item-field="name" data-bt-char="${row.characterId}" data-item-idx="${i}">`:''}`;
         const locationCellHtml = isDefault
           ? (location?bgEsc(location):'&mdash;')
-          : `<div class="bt-bondvalue-field"><label>Bond Value</label><input class="fons-bondcad-num" type="number" min="1" value="${item.bondValue||200}" data-item-field="bondValue" data-bt-char="${row.characterId}" data-item-idx="${i}"></div>`;
+          : `<div class="bt-bondvalue-field"><label>Bond Value</label><input class="fons-bondcad-num" type="text" inputmode="numeric" value="${item.bondValue||200}" data-item-field="bondValue" data-bt-char="${row.characterId}" data-item-idx="${i}"></div>`;
         const costCellHtml = isDefault
           ? `<span class="bt-cost-readonly">${fmtQty(resolved.costPerUnit)}</span>`
-          : `<input class="fons-bondcad-num bt-cost-input" type="number" min="0" value="${item.costPerUnit||0}" data-item-field="cost" data-bt-char="${row.characterId}" data-item-idx="${i}">`;
+          : `<input class="fons-bondcad-num bt-cost-input" type="text" inputmode="numeric" value="${item.costPerUnit||0}" data-item-field="cost" data-bt-char="${row.characterId}" data-item-idx="${i}">`;
         const itemCellsHtml = `
           <td class="bt-item-name">${itemSelectHtml}</td>
           <td class="bt-item-location">${locationCellHtml}</td>
           <td class="bt-item-cost">${costCellHtml}</td>
           <td class="bt-item-consuming">
             <div class="bt-consuming-fields">
-              <div class="bt-mini-field"><label>Day</label><input class="fons-bondcad-num" type="number" min="0" max="${bondTrackerItemMaxCount(row,i)+Math.max(0,item.countPerDay|0)}" value="${item.countPerDay||0}" data-item-field="count" data-bt-char="${row.characterId}" data-item-idx="${i}"></div>
-              <div class="bt-mini-field"><label>Owned</label><input class="fons-bondcad-num" type="number" min="0" value="${owned}" data-item-field="owned" data-bt-char="${row.characterId}" data-item-idx="${i}"></div>
+              <div class="bt-mini-field"><label>Day</label><input class="fons-bondcad-num" type="text" inputmode="numeric" value="${item.countPerDay||0}" data-item-field="count" data-bt-char="${row.characterId}" data-item-idx="${i}"></div>
+              <div class="bt-mini-field"><label>Owned</label><input class="fons-bondcad-num" type="text" inputmode="numeric" value="${owned}" data-item-field="owned" data-bt-char="${row.characterId}" data-item-idx="${i}"></div>
               <button type="button" class="bt-remove-item-btn" data-item-field="remove" data-bt-char="${row.characterId}" data-item-idx="${i}" title="Remove item">&#10005;</button>
             </div>
           </td>`;
