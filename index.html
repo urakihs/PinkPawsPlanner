@@ -141,17 +141,18 @@ a { color: inherit; }
 
 /* ── Bond Tracker ── */
 .fons-bondcad-sel, .fons-bondcad-num { background: var(--surface2); border: 1px solid var(--border); border-radius: 6px; color: var(--text); font-size: 14px; padding: 5px 7px; font-family: inherit; }
-.bond-tracker-tbl { table-layout: fixed; }
-.bond-tracker-tbl td { vertical-align: middle; padding: 12px 16px; border-top: 1px solid var(--border); }
-.bond-tracker-tbl th:nth-child(1), .bond-tracker-tbl td:nth-child(1) { width: 13%; }
-.bond-tracker-tbl th:nth-child(2), .bond-tracker-tbl td:nth-child(2) { width: 9%; }
+.bond-tracker-wide-wrap { max-width: none; }
+.bond-tracker-tbl { table-layout: fixed; min-width: 900px; }
+.bond-tracker-tbl td { vertical-align: middle; padding: 14px 20px; border-top: 1px solid var(--border); }
+.bond-tracker-tbl th:nth-child(1), .bond-tracker-tbl td:nth-child(1) { width: 11%; }
+.bond-tracker-tbl th:nth-child(2), .bond-tracker-tbl td:nth-child(2) { width: 8%; }
 .bond-tracker-tbl th:nth-child(3), .bond-tracker-tbl td:nth-child(3) { width: 13%; }
-.bond-tracker-tbl th:nth-child(4), .bond-tracker-tbl td:nth-child(4) { width: 30%; }
-.bond-tracker-tbl th:nth-child(5), .bond-tracker-tbl td:nth-child(5) { width: 12%; text-align: right; }
-.bond-tracker-tbl th:nth-child(6), .bond-tracker-tbl td:nth-child(6) { width: 15%; }
+.bond-tracker-tbl th:nth-child(4), .bond-tracker-tbl td:nth-child(4) { width: 35%; }
+.bond-tracker-tbl th:nth-child(5), .bond-tracker-tbl td:nth-child(5) { width: 11%; text-align: right; }
+.bond-tracker-tbl th:nth-child(6), .bond-tracker-tbl td:nth-child(6) { width: 14%; }
 .bond-tracker-tbl th:nth-child(7), .bond-tracker-tbl td:nth-child(7) { width: 8%; text-align: right; white-space: nowrap; }
-.bond-tracker-progress-label { font-size: 13px; color: var(--text); white-space: nowrap; }
-.bond-tracker-progress-label span { color: var(--muted); }
+.bond-tracker-progress-label { font-size: 13px; color: var(--text); display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.bond-tracker-progress-label span { color: var(--muted); white-space: nowrap; }
 .bond-tracker-gift-btn { background: var(--surface2); border: 1px solid var(--border); border-radius: 6px; color: var(--accent); font-size: 13px; font-weight: 600; padding: 6px 12px; cursor: pointer; font-family: inherit; margin-right: 6px; }
 .bond-tracker-gift-btn:hover { border-color: var(--accent); }
 .bond-tracker-gift-btn:disabled { opacity: .4; cursor: not-allowed; border-color: var(--border); color: var(--muted); }
@@ -339,7 +340,7 @@ a { color: inherit; }
       </div>
     </div>
     <div class="fons-warn" id="bond-tracker-gift-warn" style="display:none"></div>
-    <div class="fons-wide-wrap">
+    <div class="fons-wide-wrap bond-tracker-wide-wrap">
       <table class="fons-eff-tbl bond-tracker-tbl" id="bond-tracker-table">
         <thead><tr><th style="text-align:left">Character</th><th style="text-align:left">Level</th><th style="text-align:left">Progress</th><th style="text-align:left">Gift Items</th><th style="text-align:right">Est. Fons Remaining</th><th style="text-align:left">Est. Time Remaining</th><th></th></tr></thead>
         <tbody id="bond-tracker-body"></tbody>
