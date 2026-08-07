@@ -1177,13 +1177,15 @@ function bondTrackerSetExp(characterId, v){
   saveData(); renderBondTracker();
 }
 // Consumes one gift of an already-resolved item ({ref, costPerUnit, ...}) from the shared
-// item-inventory bucket, falling back to spending Fons once stock runs out. Used by the reset
-// catch-up simulation -- there's no manual "log gift" button anymore, gifts are consumed
-// automatically every server reset.
+// item-inventory bucket. Used by the reset catch-up simulation -- there's no manual "log gift"
+// button anymore, gifts are consumed automatically every server reset. Returns false (and
+// consumes nothing) once stock runs out -- Fons is NEVER auto-charged; the player has to
+// manually restock (buy more of the item, bump the Owned count) before gifting resumes.
 function bondTrackerConsumeItem(resolved){
   const owned = bondItemInventory[resolved.ref] || 0;
-  if (owned > 0) bondItemInventory[resolved.ref] = owned - 1;
-  else adjustInv('Fons', -resolved.costPerUnit);
+  if (owned <= 0) return false;
+  bondItemInventory[resolved.ref] = owned - 1;
+  return true;
 }
 // Dry-run projection (does not mutate state): simulates this row's current gifting/dating plan
 // forward day-by-day to Level 10, running every active item's fixed count/day plus (once
@@ -1239,6 +1241,9 @@ function bondTrackerFonsSummary(row){
 // whole roster, same as the real in-game shared cap -- so if the roster's plans add up to more
 // than 10 gifts/day, whoever's alphabetically later just doesn't get all of theirs through, same
 // as the warning banner already tells the player.
+// Ticks owned item stock down as gifts are consumed, but NEVER spends Fons automatically -- once
+// an item's stock hits 0, that item just stops advancing bond (no gift actually happened) until
+// the player manually restocks it (bumps Owned back up in the edit modal).
 function bondTrackerProcessCatchup(){
   const today = serviceDayIndex(activityNow());
   if (bondLastProcessedDay === null){ bondLastProcessedDay = today; return; }
@@ -1257,9 +1262,9 @@ function bondTrackerProcessCatchup(){
         let count = Math.max(0, item.countPerDay|0);
         while (count>0 && globalGifts<BOND_GLOBAL_GIFT_CAP && row.level<BOND_MAX_LEVEL){
           const resolved = bondItemResolve(row.characterId, item);
+          if (!bondTrackerConsumeItem(resolved)) break; // out of stock -- stop gifting this item, no auto-buy
           const eff = bondEffGiftBond(resolved.bondValue, row.level, zeroLifeSkillRank);
           const r = bondAdvance(row.level, row.exp, eff); row.level=r.level; row.exp=r.exp;
-          bondTrackerConsumeItem(resolved);
           globalGifts++; count--;
         }
       }
