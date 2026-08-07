@@ -1213,9 +1213,10 @@ function bondTrackerFonsSummary(row){
 // whole roster, same as the real in-game shared cap -- so if the roster's plans add up to more
 // than 10 gifts/day, whoever's alphabetically later just doesn't get all of theirs through, same
 // as the warning banner already tells the player.
-// Ticks owned item stock down as gifts are consumed, but NEVER spends Fons automatically -- once
-// an item's stock hits 0, that item just stops advancing bond (no gift actually happened) until
-// the player manually restocks it (bumps Owned back up in the edit modal).
+// Ticks owned item stock down as gifts are consumed; once an item's stock hits 0, the gift still
+// happens and bond still advances -- it's paid for out of Fons instead, mirroring the
+// projections (bondTrackerProject/bondTrackerFonsSummary), which already assume stock gets
+// backfilled by Fons once exhausted.
 function bondTrackerProcessCatchup(){
   const today = serviceDayIndex(activityNow());
   if (bondLastProcessedDay === null){ bondLastProcessedDay = today; return; }
@@ -1234,7 +1235,7 @@ function bondTrackerProcessCatchup(){
         let count = Math.max(0, item.countPerDay|0);
         while (count>0 && globalGifts<BOND_GLOBAL_GIFT_CAP && row.level<BOND_MAX_LEVEL){
           const resolved = bondItemResolve(row.characterId, item);
-          if (!bondTrackerConsumeItem(resolved)) break; // out of stock -- stop gifting this item, no auto-buy
+          if (!bondTrackerConsumeItem(resolved)) setInv('Fons', getInv('Fons')-resolved.costPerUnit); // out of stock -- auto-buy with Fons
           const eff = bondEffGiftBond(resolved.bondValue, row.level, zeroLifeSkillRank);
           const r = bondAdvance(row.level, row.exp, eff); row.level=r.level; row.exp=r.exp;
           globalGifts++; count--;
