@@ -886,7 +886,7 @@ function renderFons(){
       todayWidgetEl.innerHTML=`<div class="fons-widget-title">Available Today</div><div class="fons-widget-note">Nothing scheduled today.</div>`;
     } else {
       const todayTotal=todayItems.reduce((t,i)=>t+i.amount,0);
-      const rows2=todayItems.map(i=>`<div class="fons-widget-stat-row"><span>${i.name}</span><b style="${i.coveredByStock?'color:var(--muted)':i.amount<0?'color:var(--danger)':'color:var(--text)'}">${i.coveredByStock?'In Stock':fmtSigned(i.amount,false)}</b></div>`).join('');
+      const rows2=todayItems.map(i=>`<div class="fons-widget-stat-row"><span>${i.name}</span><b style="${i.coveredByStock?'color:var(--muted);font-style:italic':i.amount<0?'color:var(--danger)':'color:var(--text)'}">${i.coveredByStock?'Owned':fmtSigned(i.amount,false)}</b></div>`).join('');
       todayWidgetEl.innerHTML=`<div class="fons-widget-title">Available Today</div>
         <div class="fons-summary-val" style="color:${todayTotal<0?'var(--danger)':'var(--accent)'}">${fmtSigned(todayTotal,false)}</div>
         <div class="fons-widget-stat-rows" style="margin-top:10px">${rows2}</div>`;
