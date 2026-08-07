@@ -1379,7 +1379,7 @@ function renderBondTracker(){
           <div class="bt-name-left">
             <span class="char-name">${bgEsc(name)}</span>
             <label class="bt-dating-toggle${row.dating?' is-on':''}${datingDisabled?' is-disabled':''}" title="${datingDisabled?`Unlocks at Lv ${BOND_DATE_GATE_LEVEL}`:'Free +200 bond/day; only one character roster-wide'}">
-              <input type="checkbox" data-bt-dating="${row.characterId}"${row.dating?' checked':''}${datingDisabled?' disabled':''}> Dating today
+              <input type="checkbox" data-bt-dating="${row.characterId}"${row.dating?' checked':''}${datingDisabled?' disabled':''}> Dating Today (Req. Level ${BOND_DATE_GATE_LEVEL} Bond)
             </label>
           </div>
           <button class="fons-del-btn" data-bt-del="${row.characterId}" title="Remove character">&#10005;</button>
