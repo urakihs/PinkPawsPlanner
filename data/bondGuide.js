@@ -74,4 +74,16 @@ const BOND_GUIDE_DB = [
   // cheaper. Selection-policy correction, not a wrong-item bug.
   { characterId: "shinku",    item200Id: "glimmering-ice",        item400Id: "gigafluff-the-strong" },
   { characterId: "skia",      item200Id: "chill-out",             item400Id: "white-jade-lamp" },
+  // Zankou: DT_LikeabilityGiftData.json SpeicalGiftDatas for RoleId 1036 --
+  // 200-tier candidates Flower0001/0007/0008 (Nightingale's Sonata 6000/unit,
+  // Blazing Crimson 5400/unit, Serenade 3000/unit) -> Serenade cheapest.
+  // 400-tier: Moonmelt Tea Set (Furniture_Ornament_026, 15000/unit) is the
+  // ONLY confirmed 400-value item for her -- Promise (Furniture_draw_006) was
+  // considered but ruled out: its 400 override is RoleId-scoped to
+  // 1033/1005/1070 only, not 1036, so it's just her default 200 there, not a
+  // valid 400-tier candidate. (SpecialGift_Conch is a cheaper 10000/unit
+  // universal-400 item per the datamine, but its Chinese name doesn't match
+  // anything in shopItems.js yet -- flagging for whoever adds it rather than
+  // guessing an id.)
+  { characterId: "zankou",    item200Id: "serenade",              item400Id: "moonmelt-tea-set" },
 ];

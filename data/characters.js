@@ -28,6 +28,7 @@ const CHARACTER_DB = [
   { id: "sakiri", name: "Sakiri" },
   { id: "shinku", name: "Shinku" },
   { id: "skia", name: "Skia" },
+  { id: "zankou", name: "Zankou" },
 ];
 
 if (typeof module !== 'undefined' && module.exports) {
